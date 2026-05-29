@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-29",
+  "tags": [
+    {
+      "id": "TAG-001",
+      "name": "P2P冲突",
+      "category": "p2p-connection",
+      "description": "WiFi Direct P2P连接过程中发生冲突",
+      "patterns": ["p2p Conflict", "P2P-GROUP-FORMATION-FAILURE"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-002",
+      "name": "GC超时",
+      "category": "p2p-connection",
+      "description": "GC加入GO超时",
+      "patterns": ["GC未加入", "10秒超时"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-003",
+      "name": "DHCP超时",
+      "category": "dhcp-failure",
+      "description": "DHCP获取IP地址超时",
+      "patterns": ["DHCP timeout", "Failed to get DHCP lease"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-004",
+      "name": "认证失败",
+      "category": "auth-failure",
+      "description": "WiFi认证失败",
+      "patterns": ["CTRL-EVENT-DISCONNECTED reason=2", "Authentication failure"],
+      "auto_extract": true
+    }
+  ],
+  "extraction_rules": {
+    "log_patterns": {
+      "P2P冲突": ["p2p Conflict", "_onDisconnected.*Conflict"],
+      "GC超时": ["GC未加入", "10秒超时", "P2PGoCreatedEvent.*unregister"],
+      "DHCP失败": ["DHCP timeout", "Failed to get DHCP lease"],
+      "认证失败": ["CTRL-EVENT-DISCONNECTED reason=2", "Authentication failure"]
+    }
+  }
+}
