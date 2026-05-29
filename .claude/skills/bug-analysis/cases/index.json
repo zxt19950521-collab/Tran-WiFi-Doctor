@@ -1,7 +1,20 @@
 {
   "version": "1.0",
   "last_updated": "2026-05-29",
-  "cases": [],
+  "cases": [
+    {
+      "id": "CASE-001",
+      "title": "Windows PC接收端P2P冲突导致极速互传连接失败率高",
+      "category": "p2p-connection",
+      "tags": ["P2P冲突", "GC超时", "WiFi Direct", "极速互传", "Windows"],
+      "symptom": "P2P连接失败，成功率50%",
+      "root_cause": "Windows WiFi Direct P2P GO与系统WiFi管理器资源冲突",
+      "file_path": "cases/p2p-connection/CASE-001_TOS163-25603_P2P冲突导致极速互传失败.md",
+      "source": "TOS163-25603",
+      "created_at": "2026-05-29",
+      "match_count": 0
+    }
+  ],
   "categories": {
     "p2p-connection": "P2P连接失败",
     "dhcp-failure": "DHCP失败",
