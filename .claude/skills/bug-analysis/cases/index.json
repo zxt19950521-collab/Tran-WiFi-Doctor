@@ -13,6 +13,18 @@
       "source": "TOS163-25603",
       "created_at": "2026-05-29",
       "match_count": 0
+    },
+    {
+      "id": "CASE-002",
+      "title": "双端2.4G网络下Android碰传Android偶现发送失败",
+      "category": "p2p-connection",
+      "tags": ["P2P超时", "GC扫描失败", "SCC同信道", "AP密集", "MTK driver", "RX路径异常", "极速互传"],
+      "symptom": "P2P连接失败，成功率90.5%",
+      "root_cause": "MTK driver双端RX路径在SCC同信道+AP密集环境下双向失能",
+      "file_path": "cases/p2p-connection/CASE-002_OS162-34615_双端2.4G碰传偶现发送失败.md",
+      "source": "OS162-34615",
+      "created_at": "2026-05-29",
+      "match_count": 0
     }
   ],
   "categories": {
