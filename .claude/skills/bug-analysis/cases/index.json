@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-29",
+  "cases": [],
+  "categories": {
+    "p2p-connection": "P2P连接失败",
+    "dhcp-failure": "DHCP失败",
+    "auth-failure": "认证失败",
+    "scan-failure": "扫描失败",
+    "disconnect": "断开连接",
+    "performance": "性能问题"
+  }
+}
