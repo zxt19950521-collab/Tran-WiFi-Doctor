@@ -39,13 +39,15 @@
 
 ## 快速开始
 
+### 方式一：克隆项目（推荐）
+
 ```bash
 # 1. 克隆项目
-git clone <repository-url> Claude-Wifi-doctor
+git clone https://github.com/zxt19950521-collab/Tran-WiFi-Doctor.git Claude-Wifi-doctor
 cd Claude-Wifi-doctor
 
 # 2. 安装 Python 依赖
-pip install requests
+pip install -r requirements.txt
 
 # 3. 配置环境变量（见下方详细说明）
 # 4. 配置 Jira 账号（见下方详细说明）
@@ -54,6 +56,23 @@ python config.py
 
 # 6. 启动 Claude Code
 claude
+```
+
+### 方式二：Fork 后克隆（需要提交案例的用户）
+
+1. 在 GitHub 上 Fork 仓库：https://github.com/zxt19950521-collab/Tran-WiFi-Doctor
+2. 克隆你 Fork 的仓库：
+
+```bash
+git clone https://github.com/<你的用户名>/Tran-WiFi-Doctor.git Claude-Wifi-doctor
+cd Claude-Wifi-doctor
+
+# 添加上游仓库（用于同步更新）
+git remote add upstream https://github.com/zxt19950521-collab/Tran-WiFi-Doctor.git
+
+# 安装依赖
+pip install -r requirements.txt
+python config.py
 ```
 
 ## 更新版本
@@ -65,6 +84,17 @@ python scripts/update.py
 # 或手动更新
 git pull origin main
 pip install -r requirements.txt
+```
+
+### Fork 用户同步上游更新
+
+```bash
+# 拉取上游最新代码
+git fetch upstream
+git merge upstream/main
+
+# 或使用更新脚本
+python scripts/update.py
 ```
 
 ## 权限说明
