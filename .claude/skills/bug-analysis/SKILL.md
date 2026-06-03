@@ -82,6 +82,14 @@ description: >-
 ### report-generate 模块
 详见 `modules/report-generate.md`
 
+## 辅助工具
+
+### kernel_time_convert
+- **路径**: `scripts/kernel_time_convert.ps1` / `scripts/kernel_time_convert.py`
+- **功能**: MTK Kernel Log 时间转换
+- **用途**: 将联发科平台的 kernel_log 时间戳转换为人类可读格式
+- **文档**: 详见 `scripts/README.md`
+
 ## 案例库
 
 ### 案例索引

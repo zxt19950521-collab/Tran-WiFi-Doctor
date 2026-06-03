@@ -21,6 +21,19 @@
 - MTK kernel_log 时间转换（如适用）
 - 日志格式标准化
 
+#### MTK Kernel Log 时间转换工具
+- **脚本路径**: `scripts/kernel_time_convert.ps1`
+- **功能**: 调用联发科 Kernel log converter，为 kernel_log 生成 .localtime 文件
+- **用途**: 将 kernel_log 的时间戳转换为 MM-DD HH:MM:SS.mmm 格式，便于与 Android main_log 按分秒对照
+- **依赖**: 需要安装联发科 Kernel log converter 工具
+  - 默认路径: `D:\Program Files (x86)\Mediatek\Kernel log converter\kernel_time_convert.exe`
+  - 可通过环境变量 `KERNEL_TIME_CONVERT_EXE` 自定义路径
+- **用法**:
+  ```powershell
+  .\scripts\kernel_time_convert.ps1 -Path ".\logs\kernel_log_6__2026_0331_224424"
+  ```
+- **输出**: 在原文件同目录生成 `.localtime` 后缀的转换后文件
+
 ### 步骤 2: 识别问题类型
 根据日志内容自动识别问题类型：
 - P2P连接失败
