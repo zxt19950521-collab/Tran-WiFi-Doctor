@@ -2,7 +2,7 @@
   "mcpServers": {
     "feishu-mcp": {
       "type": "streamable-http",
-      "url": "https://open.feishu.cn/mcp/stream/mcp_kaxzl0NvWp9xDDCsWhvCir0GkWz2pY5PbHx4nau9VUDQzbTp19AYEILbk31QqJXY6unhsxv3cOA"
+      "url": "https://open.feishu.cn/mcp/stream/YOUR_MCP_ID"
     },
     "wifi-doctor": {
       "type": "stdio",
