@@ -150,6 +150,10 @@ fetch 远程 → 检查更新 → 有更新则 pull --rebase → add → commit 
 
 远程仓库：`https://github.com/zxt19950521-collab/Tran-WiFi-Doctor.git`
 
+**权限说明：**
+- 整个项目：仅管理员可直接推送
+- `cases/` 目录：所有人可通过 PR 提交案例
+
 #### 飞书推送保密级别
 
 推送到飞书的报告自动设置保密级别为 **S2-内部公开**，无需手动修改。
