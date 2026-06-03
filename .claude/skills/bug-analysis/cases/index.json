@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-29",
+  "last_updated": "2026-06-03",
   "cases": [
     {
       "id": "CASE-001",
@@ -24,6 +24,30 @@
       "file_path": "cases/p2p-connection/CASE-002_OS162-34615_双端2.4G碰传偶现发送失败.md",
       "source": "OS162-34615",
       "created_at": "2026-05-29",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-003",
+      "title": "手机向PC分享图片/文档提示连接失败（P2P连接成功后DHCP失败）",
+      "category": "dhcp-failure",
+      "tags": ["P2P连接成功", "4次握手成功", "DHCP失败", "APF ENOSYS", "DHCP REQUEST无ACK", "DhcpClient ILLEGAL ARGUMENT", "IpClient初始化失败", "IP地址未配置", "WIFI_P2P_TIMEOUT", "极速互传", "CN5c", "MTK平台"],
+      "symptom": "P2P连接成功后业务失败，IP地址未配置",
+      "root_cause": "P2P接口不支持APF导致IpClient初始化失败，或GO端DHCP服务异常",
+      "file_path": "cases/dhcp-failure/CASE-003_OS162-40436_P2P连接成功后DHCP失败.md",
+      "source": "OS162-40436",
+      "created_at": "2026-06-01",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-004",
+      "title": "PC长时间待机后P2P连接失败（GC发Auth无回复）",
+      "category": "p2p-connection",
+      "tags": ["P2P-GROUP-FORMATION-FAILURE", "GC加入GO超时", "Auth无回复", "AP密集", "PC长时间待机", "5G ch149", "MTK driver", "SupplicantP2pIfaceHal AIDL异常"],
+      "symptom": "PC长待机后连接手机失败，GC反复发Auth收不到回复，约10秒P2P组形成失败",
+      "root_cause": "待确认：疑PC长待机后WiFi Direct GO异常未响应Auth，或AP密集环境RX路径异常",
+      "file_path": "cases/p2p-connection/CASE-004_K16SFA-375_PC长待机后P2P连接Auth无回复失败.md",
+      "source": "K16SFA-375",
+      "created_at": "2026-06-03",
       "match_count": 0
     }
   ],
