@@ -72,13 +72,19 @@ pip install -r requirements.txt
 | 目录 | 权限 | 说明 |
 |------|------|------|
 | 整个项目 | 仅管理员 | 代码、配置、文档等 |
-| `.claude/skills/bug-analysis/cases/` | 所有人 | 通过 PR 提交案例 |
+| `.claude/skills/bug-analysis/cases/` | 所有人 | 通过 PR 提交案例（自动合入） |
 
-**案例提交流程：**
+**案例提交流程（自动合入）：**
 1. Fork 仓库
 2. 在 `cases/` 目录添加新案例
 3. 提交 Pull Request
-4. 管理员审核合并
+4. **自动合入**（仅限 cases 目录的修改）
+
+**其他文件提交流程（需审批）：**
+1. Fork 仓库
+2. 修改代码
+3. 提交 Pull Request
+4. 管理员审核后手动合并
 
 ---
 
