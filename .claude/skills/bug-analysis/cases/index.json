@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-03",
+  "last_updated": "2026-06-04",
   "cases": [
     {
       "id": "CASE-001",
@@ -48,6 +48,18 @@
       "file_path": "cases/p2p-connection/CASE-004_K16SFA-375_PC长待机后P2P连接Auth无回复失败.md",
       "source": "K16SFA-375",
       "created_at": "2026-06-03",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-005",
+      "title": "AirTransfer与NearbySharing P2P资源冲突导致NFC碰传失败",
+      "category": "p2p-connection",
+      "tags": ["P2P_RESOURCE_CONFLICT", "P2P_BUSY", "P2P_GROUP_FORMATION_FAILURE", "NFC_CONNECT_TIMEOUT", "NearbySharing"],
+      "symptom": "NFC碰传连接失败，必现，错误码105",
+      "root_cause": "AirTransfer移除NearbySharing的GC连接后创建Group，NearbySharing自动重连产生竞态导致BUSY",
+      "file_path": "cases/p2p-connection/CASE-005_OS162-40628_AirTransfer与NearbySharing_P2P资源冲突.md",
+      "source": "OS162-40628",
+      "created_at": "2026-06-04",
       "match_count": 0
     }
   ],
