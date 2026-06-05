@@ -73,6 +73,18 @@
       "source": "LK7OS163-2073",
       "created_at": "2026-06-05",
       "match_count": 0
+    },
+    {
+      "id": "CASE-007",
+      "title": "同步wifi.cfg误删RegP2pMode导致手机GC无法发起P2P关联",
+      "category": "p2p-connection",
+      "tags": ["P2P-GROUP-FORMATION-FAILURE", "Association request to the driver failed", "GC驱动拒绝关联", "未发Auth", "RegP2pMode删除", "wifi.cfg同步回归", "MTK gen4m", "极速互传", "PC GO", "CR1532957/TOS163-33727"],
+      "symptom": "手机GC连PC GO失败，Association request to the driver failed，authSendAuthFrame=0，约10秒P2P组形成失败",
+      "root_cause": "CR 1532957同步v版本wifi.cfg时误删RegP2pMode 6，GC失去P2P关联能力，驱动同步拒绝connect（与信道、STA并发无关）",
+      "file_path": "cases/p2p-connection/CASE-007_PC-P2P_RegP2pMode删除导致GC无法发起关联.md",
+      "source": "APLog_2026_0605_095756 + CR1532957",
+      "created_at": "2026-06-05",
+      "match_count": 0
     }
   ],
   "categories": {
