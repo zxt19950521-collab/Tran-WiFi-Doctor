@@ -1,6 +1,19 @@
 {
-  "version": "1.0",
-  "last_updated": "2026-05-29",
+  "version": "2.0",
+  "last_updated": "2026-06-08",
+  "source": "wifi-common/tags-knowledge.md + bug-analysis 实战积累",
+  "categories": {
+    "p2p-connection": "P2P连接失败",
+    "dhcp-failure": "DHCP失败",
+    "auth-failure": "认证失败",
+    "scan-failure": "扫描失败",
+    "disconnect": "断开连接",
+    "performance": "性能问题",
+    "dns-network": "DNS/网络验证",
+    "platform": "平台/设备类",
+    "environment": "环境类",
+    "system-event": "系统事件类"
+  },
   "tags": [
     {
       "id": "TAG-001",
@@ -14,8 +27,8 @@
       "id": "TAG-002",
       "name": "GC超时",
       "category": "p2p-connection",
-      "description": "GC加入GO超时",
-      "patterns": ["GC未加入", "10秒超时"],
+      "description": "GC加入GO超时（10秒）",
+      "patterns": ["GC未加入", "10秒超时", "P2PGoCreatedEvent.*unregister"],
       "auto_extract": true
     },
     {
@@ -33,14 +46,792 @@
       "description": "WiFi认证失败",
       "patterns": ["CTRL-EVENT-DISCONNECTED reason=2", "Authentication failure"],
       "auto_extract": true
+    },
+    {
+      "id": "TAG-005",
+      "name": "P2P超时",
+      "category": "p2p-connection",
+      "description": "P2P连接整体超时",
+      "patterns": ["WIFI_P2P_TIMEOUT", "notifyConnectFail"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-006",
+      "name": "GC扫描失败",
+      "category": "p2p-connection",
+      "description": "GC无法扫描到GO",
+      "patterns": ["GC扫描失败", "P2P-DEVICE-FOUND 未出现"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-007",
+      "name": "P2P连接成功",
+      "category": "p2p-connection",
+      "description": "P2P链路建立成功",
+      "patterns": ["P2P-GROUP-STARTED", "Key negotiation completed"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-008",
+      "name": "4次握手成功",
+      "category": "p2p-connection",
+      "description": "WPA 4次握手完成",
+      "patterns": ["Key negotiation completed [PTK=CCMP GTK=CCMP]"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-009",
+      "name": "Group Formation超时",
+      "category": "p2p-connection",
+      "description": "P2P组群形成阶段超时",
+      "patterns": ["P2P: Group Formation timed out", "P2P-GROUP-FORMATION-FAILURE"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-010",
+      "name": "建链后秒断",
+      "category": "p2p-connection",
+      "description": "RSNA完成后极短时间被踢",
+      "patterns": ["NL80211_CMD_DISCONNECT", "CTRL-EVENT-DISCONNECTED reason=0"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-011",
+      "name": "应用层MAC/握手",
+      "category": "p2p-connection",
+      "description": "L7业务校验失败",
+      "patterns": ["deviceMac not match", "dealConnectResult"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-012",
+      "name": "EAPOL MIC失败",
+      "category": "auth-failure",
+      "description": "EAPOL密钥校验失败",
+      "patterns": ["Invalid EAPOL-Key MIC - dropping packet"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-013",
+      "name": "P2P资源冲突",
+      "category": "p2p-connection",
+      "description": "多应用同时操作P2P资源导致竞态",
+      "patterns": ["[2]BUSY", "P2P_RESOURCE_CONFLICT"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-014",
+      "name": "DHCP失败",
+      "category": "dhcp-failure",
+      "description": "DHCP获取IP地址失败",
+      "patterns": ["DHCP timeout", "Failed to get DHCP lease", "No DHCPOFFER received"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-015",
+      "name": "DHCP REQUEST无ACK",
+      "category": "dhcp-failure",
+      "description": "GO端未回复DHCP ACK",
+      "patterns": ["DHCP: Send REQUEST.*重传", "未收到ACK"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-016",
+      "name": "DHCP NAK",
+      "category": "dhcp-failure",
+      "description": "DHCP服务器拒绝请求",
+      "patterns": ["Received DHCPNAK"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-017",
+      "name": "DHCP DECLINE",
+      "category": "dhcp-failure",
+      "description": "客户端拒绝DHCP Offer",
+      "patterns": ["Sending DHCPDECLINE"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-018",
+      "name": "IP配置丢失",
+      "category": "dhcp-failure",
+      "description": "IP配置丢失",
+      "patterns": ["CMD_IP_CONFIGURATION_LOST"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-019",
+      "name": "配置失败",
+      "category": "dhcp-failure",
+      "description": "IP配置失败",
+      "patterns": ["IpClient: onProvisioningFailure"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-020",
+      "name": "APF ENOSYS",
+      "category": "dhcp-failure",
+      "description": "P2P接口不支持APF",
+      "patterns": ["getApfCapabilities failed: ENOSYS"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-021",
+      "name": "DhcpClient ILLEGAL ARGUMENT",
+      "category": "dhcp-failure",
+      "description": "DhcpClient初始化参数错误",
+      "patterns": ["Error retrieving network attributes: ILLEGAL ARGUMENT"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-022",
+      "name": "IpClient初始化失败",
+      "category": "dhcp-failure",
+      "description": "IpClient无法初始化",
+      "patterns": ["IpClient.*ERROR", "Cannot get APF capabilities"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-023",
+      "name": "IP地址未配置",
+      "category": "dhcp-failure",
+      "description": "IP地址未配置到接口",
+      "patterns": ["interfaceSetCfg 缺失"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-024",
+      "name": "Kernel DHCP成功",
+      "category": "dhcp-failure",
+      "description": "内核层DHCP四步握手成功",
+      "patterns": ["Dhcp done, stop GC join timer"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-025",
+      "name": "DHCP租约过期",
+      "category": "dhcp-failure",
+      "description": "DHCP租约到期",
+      "patterns": ["lease expired"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-026",
+      "name": "密钥错误",
+      "category": "auth-failure",
+      "description": "WPA密钥不匹配",
+      "patterns": ["WPA: 4-Way Handshake failed"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-027",
+      "name": "PSK不匹配",
+      "category": "auth-failure",
+      "description": "预共享密钥错误",
+      "patterns": ["CTRL-EVENT-DISCONNECTED reason=2", "PREV_AUTH_NOT_VALID"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-028",
+      "name": "EAP失败",
+      "category": "auth-failure",
+      "description": "EAP认证失败",
+      "patterns": ["CTRL-EVENT-EAP-FAILURE", "EAP-TLS: TLS processing failed"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-029",
+      "name": "WPA3/SAE失败",
+      "category": "auth-failure",
+      "description": "WPA3 SAE认证失败",
+      "patterns": ["SAE: authentication failure"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-030",
+      "name": "关联拒绝",
+      "category": "auth-failure",
+      "description": "AP拒绝关联请求",
+      "patterns": ["CTRL-EVENT-ASSOC-REJECT.*status_code="],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-031",
+      "name": "关联超时",
+      "category": "auth-failure",
+      "description": "关联请求超时",
+      "patterns": ["CTRL-EVENT-SSID-TEMP-DISABLED.*auth_failures=", "Timed out waiting for supplicant state change"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-032",
+      "name": "4次握手失败",
+      "category": "auth-failure",
+      "description": "WPA 4次握手失败",
+      "patterns": ["WPA: 4-Way Handshake failed", "CTRL-EVENT-DISCONNECTED reason=15"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-033",
+      "name": "组密钥握手超时",
+      "category": "auth-failure",
+      "description": "组密钥握手超时",
+      "patterns": ["CTRL-EVENT-DISCONNECTED reason=16"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-034",
+      "name": "扫描失败",
+      "category": "scan-failure",
+      "description": "WiFi扫描失败",
+      "patterns": ["Scan failed", "SCAN-FAILED"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-035",
+      "name": "扫描超时",
+      "category": "scan-failure",
+      "description": "WiFi扫描超时",
+      "patterns": ["Scan timeout"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-036",
+      "name": "PNO扫描失败",
+      "category": "scan-failure",
+      "description": "后台扫描失败",
+      "patterns": ["Failed to start PNO scan"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-037",
+      "name": "扫描节流",
+      "category": "scan-failure",
+      "description": "扫描请求被节流",
+      "patterns": ["Scan request throttled"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-038",
+      "name": "未找到网络",
+      "category": "scan-failure",
+      "description": "扫描后未找到目标网络",
+      "patterns": ["connectToNetwork: Cannot find network", "No candidates selected"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-039",
+      "name": "断开连接",
+      "category": "disconnect",
+      "description": "WiFi连接断开",
+      "patterns": ["CTRL-EVENT-DISCONNECTED"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-040",
+      "name": "信号弱",
+      "category": "disconnect",
+      "description": "信号强度过低",
+      "patterns": ["RSSI.*低", "signal.*weak"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-041",
+      "name": "漫游失败",
+      "category": "disconnect",
+      "description": "AP间漫游失败",
+      "patterns": ["Roaming failed", "ROAMING-FAILED"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-042",
+      "name": "过度漫游",
+      "category": "disconnect",
+      "description": "短时间内多次漫游",
+      "patterns": ["Multiple BSSID changes detected in short window"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-043",
+      "name": "BSSID黑名单",
+      "category": "disconnect",
+      "description": "BSSID被加入黑名单",
+      "patterns": ["BSSID blacklisted", "Filtered out BSSID"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-044",
+      "name": "固件崩溃",
+      "category": "disconnect",
+      "description": "WiFi固件崩溃",
+      "patterns": ["SSR", "subsystem restart", "firmware crash"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-045",
+      "name": "AP发起解认证",
+      "category": "disconnect",
+      "description": "AP端主动断开",
+      "patterns": ["locally_generated=0 reason=3"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-046",
+      "name": "网关不可达",
+      "category": "disconnect",
+      "description": "默认网关不可达",
+      "patterns": ["IpReachabilityMonitor: FAILURE", "Lost default router"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-047",
+      "name": "Doze模式断开",
+      "category": "disconnect",
+      "description": "省电模式导致断开",
+      "patterns": ["DeviceIdle.*IDLE"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-048",
+      "name": "不活动解除关联",
+      "category": "disconnect",
+      "description": "长时间不活动被踢",
+      "patterns": ["CTRL-EVENT-DISCONNECTED reason=4"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-049",
+      "name": "DNS超时",
+      "category": "dns-network",
+      "description": "DNS查询超时",
+      "patterns": ["DnsResolver: DNS query timeout"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-050",
+      "name": "DNS解析失败",
+      "category": "dns-network",
+      "description": "DNS解析失败",
+      "patterns": ["NetworkMonitor: DNS resolution failed"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-051",
+      "name": "网络验证失败",
+      "category": "dns-network",
+      "description": "网络连通性验证失败",
+      "patterns": ["HTTPS probe failed"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-052",
+      "name": "强制门户",
+      "category": "dns-network",
+      "description": "检测到强制门户",
+      "patterns": ["Captive portal detected"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-053",
+      "name": "无互联网",
+      "category": "dns-network",
+      "description": "网络无互联网访问",
+      "patterns": ["Network has no internet access"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-054",
+      "name": "吞吐量低",
+      "category": "performance",
+      "description": "WiFi吞吐量低",
+      "patterns": ["Tput:", "throughput.*低"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-055",
+      "name": "延迟高",
+      "category": "performance",
+      "description": "WiFi延迟高",
+      "patterns": ["latency.*高"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-056",
+      "name": "丢包",
+      "category": "performance",
+      "description": "WiFi丢包率高",
+      "patterns": ["packet loss", "PER("],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-057",
+      "name": "通道拥塞",
+      "category": "performance",
+      "description": "信道拥堵",
+      "patterns": ["同信道多BSSID"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-058",
+      "name": "省电模式激进",
+      "category": "performance",
+      "description": "省电策略过于激进",
+      "patterns": ["屏幕关闭后延迟飙升"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-059",
+      "name": "热节流",
+      "category": "performance",
+      "description": "热节流导致性能下降",
+      "patterns": ["thermal throttling"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-060",
+      "name": "RSSI低",
+      "category": "performance",
+      "description": "信号强度低",
+      "patterns": ["mtk_cfg80211_get_station.*rssi=.*-[0-9]{2,}"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-061",
+      "name": "协商速率低",
+      "category": "performance",
+      "description": "WiFi协商速率低",
+      "patterns": ["wlanLinkQualityMonitor.*Tx(rate:"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-062",
+      "name": "MTK平台",
+      "category": "platform",
+      "description": "联发科芯片平台",
+      "patterns": ["MTK", "mtk"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-063",
+      "name": "MTK driver",
+      "category": "platform",
+      "description": "MTK驱动问题",
+      "patterns": ["mtk_wifi", "wmt_drv", "wlan", "wcn"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-064",
+      "name": "Windows",
+      "category": "platform",
+      "description": "Windows PC端",
+      "patterns": ["Windows", "PC"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-065",
+      "name": "极速互传",
+      "category": "platform",
+      "description": "极速互传业务",
+      "patterns": ["AirTransfer", "极速互传"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-066",
+      "name": "SCC同信道",
+      "category": "environment",
+      "description": "STA和P2P同信道",
+      "patterns": ["SCC", "same channel"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-067",
+      "name": "AP密集",
+      "category": "environment",
+      "description": "周围AP密集",
+      "patterns": ["多个AP信号"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-068",
+      "name": "2.4G频段",
+      "category": "environment",
+      "description": "2.4GHz频段",
+      "patterns": ["freq=2412", "2.4G"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-069",
+      "name": "5G频段",
+      "category": "environment",
+      "description": "5GHz频段",
+      "patterns": ["freq=5180", "5G"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-070",
+      "name": "屏幕状态变化",
+      "category": "system-event",
+      "description": "屏幕开启/关闭",
+      "patterns": ["screen on", "screen off"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-071",
+      "name": "Doze模式",
+      "category": "system-event",
+      "description": "设备进入Doze省电模式",
+      "patterns": ["DeviceIdle", "IDLE"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-072",
+      "name": "飞行模式",
+      "category": "system-event",
+      "description": "飞行模式开启/关闭",
+      "patterns": ["airplane mode"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-073",
+      "name": "热事件",
+      "category": "system-event",
+      "description": "设备过热",
+      "patterns": ["thermal", "temperature"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-074",
+      "name": "内存压力",
+      "category": "system-event",
+      "description": "系统内存压力大",
+      "patterns": ["low memory", "memory pressure"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-075",
+      "name": "上行链路失效",
+      "category": "disconnect",
+      "description": "STA→AP上行帧大量无ACK，上行RF问题",
+      "patterns": ["ACK fail.*fail", "fail.*ACK fail"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-076",
+      "name": "NUD失败导致断连",
+      "category": "disconnect",
+      "description": "IpReachabilityMonitor NUD探测失败触发断连",
+      "patterns": ["IpReachabilityMonitor.*NUD_FAILED", "LOST_PROVISIONING"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-077",
+      "name": "假性WRONG_KEY",
+      "category": "auth-failure",
+      "description": "上行丢帧导致4次握手失败被误报为密钥错误",
+      "patterns": ["4-Way Handshake failed.*pre-shared key may be incorrect", "WRONG_KEY"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-078",
+      "name": "ASSOC-REJECT风暴",
+      "category": "auth-failure",
+      "description": "关联请求被反复拒绝",
+      "patterns": ["CTRL-EVENT-ASSOC-REJECT status_code=16"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-079",
+      "name": "TX_ERR触发漫游",
+      "category": "disconnect",
+      "description": "发送错误触发漫游（非RSSI触发）",
+      "patterns": ["reason=TX_ERR", "SEARCH_START.*reason=TX_ERR"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-080",
+      "name": "物理速率坍塌",
+      "category": "performance",
+      "description": "PHY Rate降到最低档（如2.4G 65/10Mbps）",
+      "patterns": ["Tx(rate:65", "Rx(rate:10"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-081",
+      "name": "PER间歇突刺",
+      "category": "performance",
+      "description": "PER均值低但峰值极高（>80），间歇性爆发",
+      "patterns": ["PER(8", "PER(9"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-082",
+      "name": "Rx error高",
+      "category": "performance",
+      "description": "接收CRC/FCS错误率极高（>20%）",
+      "patterns": ["error:"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-083",
+      "name": "ACK fail持续累加",
+      "category": "performance",
+      "description": "ACK fail持续增长，强信号下上行问题",
+      "patterns": ["ACK fail:"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-084",
+      "name": "单AP无漫游目标",
+      "category": "environment",
+      "description": "环境仅1个AP，无法漫游",
+      "patterns": ["roamingFsmRunEventFail.*reason 1"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-085",
+      "name": "Class-2 frame",
+      "category": "disconnect",
+      "description": "AP因收不到上行帧认为STA未关联而下发deauth",
+      "patterns": ["reason=6", "Class-2 frame from nonassociated STA"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-086",
+      "name": "DTIM配置失败",
+      "category": "performance",
+      "description": "WiFi省电模式DTIM配置失败",
+      "patterns": ["setDtimMultiplier failed"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-087",
+      "name": "吞吐突发-空闲波动",
+      "category": "performance",
+      "description": "吞吐量从数百Mbps瞬间跌到接近0，呈突发-空闲模式",
+      "patterns": ["kalPerMonUpdate"],
+      "auto_extract": true
     }
   ],
   "extraction_rules": {
     "log_patterns": {
-      "P2P冲突": ["p2p Conflict", "_onDisconnected.*Conflict"],
+      "P2P冲突": ["p2p Conflict", "_onDisconnected.*Conflict", "P2P-GROUP-FORMATION-FAILURE"],
       "GC超时": ["GC未加入", "10秒超时", "P2PGoCreatedEvent.*unregister"],
-      "DHCP失败": ["DHCP timeout", "Failed to get DHCP lease"],
-      "认证失败": ["CTRL-EVENT-DISCONNECTED reason=2", "Authentication failure"]
+      "P2P超时": ["WIFI_P2P_TIMEOUT", "notifyConnectFail"],
+      "Group Formation超时": ["P2P: Group Formation timed out", "P2P-GROUP-FORMATION-FAILURE"],
+      "建链后秒断": ["NL80211_CMD_DISCONNECT", "CTRL-EVENT-DISCONNECTED reason=0"],
+      "应用层MAC/握手": ["deviceMac not match", "dealConnectResult"],
+      "EAPOL MIC失败": ["Invalid EAPOL-Key MIC - dropping packet"],
+      "P2P资源冲突": ["[2]BUSY", "P2P_RESOURCE_CONFLICT"],
+      "DHCP失败": ["DHCP timeout", "Failed to get DHCP lease", "No DHCPOFFER received"],
+      "DHCP REQUEST无ACK": ["DHCP: Send REQUEST.*重传", "未收到ACK"],
+      "DHCP NAK": ["Received DHCPNAK"],
+      "DHCP DECLINE": ["Sending DHCPDECLINE"],
+      "IP配置丢失": ["CMD_IP_CONFIGURATION_LOST"],
+      "配置失败": ["IpClient: onProvisioningFailure"],
+      "APF ENOSYS": ["getApfCapabilities failed: ENOSYS"],
+      "DhcpClient ILLEGAL ARGUMENT": ["Error retrieving network attributes: ILLEGAL ARGUMENT"],
+      "IpClient初始化失败": ["IpClient.*ERROR", "Cannot get APF capabilities"],
+      "DHCP租约过期": ["lease expired"],
+      "认证失败": ["CTRL-EVENT-DISCONNECTED reason=2", "Authentication failure"],
+      "密钥错误": ["WPA: 4-Way Handshake failed"],
+      "PSK不匹配": ["CTRL-EVENT-DISCONNECTED reason=2", "PREV_AUTH_NOT_VALID"],
+      "EAP失败": ["CTRL-EVENT-EAP-FAILURE", "EAP-TLS: TLS processing failed"],
+      "WPA3/SAE失败": ["SAE: authentication failure"],
+      "关联拒绝": ["CTRL-EVENT-ASSOC-REJECT.*status_code="],
+      "关联超时": ["CTRL-EVENT-SSID-TEMP-DISABLED.*auth_failures=", "Timed out waiting for supplicant state change"],
+      "4次握手失败": ["WPA: 4-Way Handshake failed", "CTRL-EVENT-DISCONNECTED reason=15"],
+      "组密钥握手超时": ["CTRL-EVENT-DISCONNECTED reason=16"],
+      "假性WRONG_KEY": ["4-Way Handshake failed.*pre-shared key may be incorrect", "WRONG_KEY"],
+      "ASSOC-REJECT风暴": ["CTRL-EVENT-ASSOC-REJECT status_code=16"],
+      "扫描失败": ["Scan failed", "getScanResults failed", "SCAN-FAILED"],
+      "PNO扫描失败": ["Failed to start PNO scan"],
+      "扫描节流": ["Scan request throttled"],
+      "未找到网络": ["connectToNetwork: Cannot find network", "No candidates selected"],
+      "断开连接": ["CTRL-EVENT-DISCONNECTED"],
+      "信号弱": ["RSSI.*低", "signal.*weak"],
+      "漫游失败": ["Roaming failed", "ROAMING-FAILED"],
+      "过度漫游": ["Multiple BSSID changes detected in short window"],
+      "BSSID黑名单": ["BSSID blacklisted", "Filtered out BSSID"],
+      "固件崩溃": ["SSR", "subsystem restart", "firmware crash"],
+      "AP发起解认证": ["locally_generated=0 reason=3"],
+      "网关不可达": ["IpReachabilityMonitor: FAILURE", "Lost default router"],
+      "NUD失败导致断连": ["IpReachabilityMonitor.*NUD_FAILED", "LOST_PROVISIONING"],
+      "Doze模式断开": ["DeviceIdle.*IDLE"],
+      "不活动解除关联": ["CTRL-EVENT-DISCONNECTED reason=4"],
+      "Class-2 frame": ["reason=6", "Class-2 frame from nonassociated STA"],
+      "上行链路失效": ["ACK fail.*fail", "fail.*ACK fail"],
+      "TX_ERR触发漫游": ["reason=TX_ERR", "SEARCH_START.*reason=TX_ERR"],
+      "单AP无漫游目标": ["roamingFsmRunEventFail.*reason 1"],
+      "DNS超时": ["DnsResolver: DNS query timeout"],
+      "DNS解析失败": ["NetworkMonitor: DNS resolution failed"],
+      "网络验证失败": ["HTTPS probe failed"],
+      "强制门户": ["Captive portal detected"],
+      "无互联网": ["Network has no internet access"],
+      "吞吐量低": ["Tput:", "throughput.*低"],
+      "延迟高": ["latency.*高"],
+      "丢包": ["packet loss", "PER("],
+      "通道拥塞": ["同信道多BSSID"],
+      "省电模式激进": ["屏幕关闭后延迟飙升"],
+      "热节流": ["thermal throttling"],
+      "RSSI低": ["mtk_cfg80211_get_station.*rssi=.*-[0-9]{2,}"],
+      "协商速率低": ["wlanLinkQualityMonitor.*Tx(rate:"],
+      "物理速率坍塌": ["Tx(rate:65", "Rx(rate:10"],
+      "PER间歇突刺": ["PER(8", "PER(9"],
+      "Rx error高": ["error:"],
+      "ACK fail持续累加": ["ACK fail:"],
+      "DTIM配置失败": ["setDtimMultiplier failed"],
+      "吞吐突发-空闲波动": ["kalPerMonUpdate"],
+      "屏幕状态变化": ["screen on", "screen off"],
+      "Doze模式": ["DeviceIdle", "IDLE"],
+      "飞行模式": ["airplane mode"],
+      "热事件": ["thermal", "temperature"],
+      "内存压力": ["low memory", "memory pressure"]
+    },
+    "断开原因代码": {
+      "0": "未指定原因 → 建链后秒断",
+      "2": "之前的认证不再有效 → PSK不匹配/认证失败",
+      "3": "站点离开而解认证 → AP发起解认证",
+      "4": "不活动而解除关联 → 不活动解除关联",
+      "6": "Class-2 frame → AP认为STA未关联",
+      "15": "4次握手超时 → 4次握手失败",
+      "16": "组密钥握手超时 → 组密钥握手超时"
     }
-  }
+  },
+  "problem_chains": [
+    {
+      "name": "P2P连接成功后业务失败",
+      "chain": ["P2P连接成功", "4次握手成功", "DHCP失败", "IP地址未配置", "业务失败"],
+      "case_ref": "CASE-003"
+    },
+    {
+      "name": "P2P连接阶段失败",
+      "chain": ["P2P发起", "GC扫描失败", "GC超时", "P2P超时", "连接失败"],
+      "case_ref": "CASE-002"
+    },
+    {
+      "name": "P2P冲突导致失败",
+      "chain": ["P2P连接", "P2P冲突", "断开连接", "连接失败"],
+      "case_ref": "CASE-001"
+    },
+    {
+      "name": "P2P资源多应用冲突",
+      "chain": ["NearbySharing传输中", "AirTransfer创建Group", "移除GC连接", "NearbySharing重连", "BUSY", "GO创建失败"],
+      "case_ref": "CASE-005"
+    },
+    {
+      "name": "上行失效导致断连",
+      "chain": ["弱信号(-70dB)", "上行ACK全失败", "4次握手M2丢失", "假性WRONG_KEY", "SSID-TEMP-DISABLED", "回连失败"],
+      "case_ref": "TOS170-2812"
+    },
+    {
+      "name": "NUD失败导致断连",
+      "chain": ["上行链路失效", "NUD探测失败", "LOST_PROVISIONING", "locally_generated=1 reason=3"],
+      "case_ref": "TOS170-2812"
+    },
+    {
+      "name": "强信号空口拥塞",
+      "chain": ["RSSI正常(-30dBm)", "Rx error高(38%)", "ACK fail累加", "PER间歇突刺", "吞吐波动", "游戏加载慢"],
+      "case_ref": "CASE-008"
+    }
+  ]
 }

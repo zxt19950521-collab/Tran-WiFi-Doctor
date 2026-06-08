@@ -45,7 +45,17 @@
       "Bash(git remote *)",
       "Bash(git branch *)",
       "Bash(git push *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(mkdir *)",
+      "Bash(unzip -o TagLog_2026_0530_181822_WholeLogRecord.zip -d TagLog_2026_0530_181822)",
+      "Bash(unzip -o TagLog_2026_0530_182807_WholeLogRecord.zip -d TagLog_2026_0530_182807)",
+      "WebFetch(domain:android.googlesource.com)",
+      "WebFetch(domain:cs.android.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:grep.app)",
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git stash *)"
     ]
   }
 }

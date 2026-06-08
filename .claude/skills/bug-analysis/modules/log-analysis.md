@@ -81,6 +81,8 @@
 
 分析 kernel 日志时，遇到以下关键字需加载对应知识文档：
 
+### MTK 驱动日志知识
+
 | kernel 日志关键字 | 知识文档 | 用途 |
 |------------------|----------|------|
 | `wlanLinkQualityMonitor` | `knowledge/docs/mtk-link-quality-monitor.md` | 解析 Tx/Rx/PER/Congestion 各字段，计算指标，匹配场景模板 |
@@ -88,7 +90,25 @@
 | `wpa_supplicant` EAPOL | `knowledge/docs/eapol-handshake.md`（待建） | 4 次握手流程分析 |
 | `roamingFsm` / `apsSearchBssDesc` | `knowledge/docs/mtk-roaming.md`（待建） | 漫游触发原因与流程分析 |
 
-**加载方式**：在分析 kernel 日志遇到上述关键字时，使用 Read 工具读取对应知识文档，按文档中的公式和判断标准进行量化分析。
+### WiFi 通用分析知识（同步自 wifi-common）
+
+| 知识文档 | 用途 | 使用时机 |
+|----------|------|----------|
+| `knowledge/docs/wifi-tags-knowledge.md` | 8 大类 30+ TAG 定义、提取规则、关联分析、问题链条 | 分析任何 WiFi 问题时，用于 TAG 提取与匹配 |
+| `knowledge/docs/wifi-analysis-guide.md` | 按问题类型的详细分析步骤（P2P/DHCP/Auth/DNS/断连/性能） | 确定问题类型后，按指南逐步分析 |
+| `knowledge/docs/wifi-quick-reference.md` | 常见日志关键字速查、断开原因代码速查 | 快速定位日志关键字含义 |
+
+### TAG 知识库
+
+| 文件 | 用途 |
+|------|------|
+| `knowledge/tags.json` | 87 个 TAG 定义 + 提取规则 + 7 条问题链条，用于案例匹配与 TAG 关联分析 |
+
+**加载方式**：
+1. 分析 kernel 日志遇到 MTK 关键字时，读取对应 MTK 知识文档做量化分析
+2. 提取 TAG 时，读取 `wifi-tags-knowledge.md` 或查询 `tags.json` 的提取规则
+3. 确定问题类型后，读取 `wifi-analysis-guide.md` 按步骤分析
+4. 需要快速查关键字含义时，读取 `wifi-quick-reference.md`
 
 ## 分析策略
 
