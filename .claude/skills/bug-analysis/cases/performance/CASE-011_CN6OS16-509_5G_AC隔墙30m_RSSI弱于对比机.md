@@ -1,7 +1,7 @@
-# CASE-007: 5G AC 隔墙 30m OTA RSSI 弱于对比机，CTIA 开关影响显著
+# CASE-011: 5G AC 隔墙 30m OTA RSSI 弱于对比机，CTIA 开关影响显著
 
 ## 基本信息
-- **案例ID**: CASE-007
+- **案例ID**: CASE-011
 - **分类**: performance
 - **来源**: CN6OS16-509
 - **创建时间**: 2026-06-08
@@ -65,4 +65,4 @@
 - 对比机测试
 
 ## 相关案例
-- CASE-006（performance 类，蜂窝热点温升，不同子场景）
+- CASE-010（performance 类，蜂窝热点温升，不同子场景）

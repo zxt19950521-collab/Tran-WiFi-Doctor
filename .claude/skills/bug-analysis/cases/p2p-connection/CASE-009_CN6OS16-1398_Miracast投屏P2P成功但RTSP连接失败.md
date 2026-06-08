@@ -1,7 +1,7 @@
-# CASE-005: CN6 Miracast投屏P2P成功但RTSP连接失败
+# CASE-009: CN6 Miracast投屏P2P成功但RTSP连接失败
 
 ## 基本信息
-- **案例ID**: CASE-005
+- **案例ID**: CASE-009
 - **分类**: p2p-connection
 - **来源**: CN6OS16-1398（原 TOS163-32888）
 - **创建时间**: 2026-06-08
