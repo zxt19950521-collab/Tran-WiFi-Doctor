@@ -77,6 +77,19 @@
 ### 步骤 5: 生成时间线
 按时间顺序整理关键事件，生成时间线。
 
+## 知识文档引用
+
+分析 kernel 日志时，遇到以下关键字需加载对应知识文档：
+
+| kernel 日志关键字 | 知识文档 | 用途 |
+|------------------|----------|------|
+| `wlanLinkQualityMonitor` | `knowledge/docs/mtk-link-quality-monitor.md` | 解析 Tx/Rx/PER/Congestion 各字段，计算指标，匹配场景模板 |
+| `scnFsmDumpScanDoneInfo` / `IdleTime` / `MdrdyCnt` / `BAndPCnt` / `CU Value` | `knowledge/docs/mtk-scan-done-info.md` | 解析扫描结果：信道空闲时间、帧计数、AP 密度、Channel Utilization，用于 ACS/P2P 选信道/拥塞排查 |
+| `wpa_supplicant` EAPOL | `knowledge/docs/eapol-handshake.md`（待建） | 4 次握手流程分析 |
+| `roamingFsm` / `apsSearchBssDesc` | `knowledge/docs/mtk-roaming.md`（待建） | 漫游触发原因与流程分析 |
+
+**加载方式**：在分析 kernel 日志遇到上述关键字时，使用 Read 工具读取对应知识文档，按文档中的公式和判断标准进行量化分析。
+
 ## 分析策略
 
 ### P2P连接失败
