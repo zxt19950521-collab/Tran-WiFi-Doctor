@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-05",
+  "last_updated": "2026-06-08",
   "cases": [
     {
       "id": "CASE-001",
@@ -84,6 +84,18 @@
       "file_path": "cases/p2p-connection/CASE-007_PC-P2P_RegP2pMode删除导致GC无法发起关联.md",
       "source": "APLog_2026_0605_095756 + CR1532957",
       "created_at": "2026-06-05",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-008",
+      "title": "强信号下空口介质争用/同频干扰导致Roblox游戏加载极慢（WiFi未断开）",
+      "category": "performance",
+      "tags": ["PER间歇突刺", "ACK fail持续累加", "RTS fail", "Rx error高", "介质争用", "同频干扰", "信道拥塞", "吞吐突发-空闲波动", "强信号正常速率", "游戏加载慢", "无断开", "MTK driver"],
+      "symptom": "强信号(-30dBm)、协商速率正常，但吞吐突发-空闲剧烈波动导致Roblox加载极慢；WiFi未断开",
+      "root_cause": "空口介质争用/同频干扰导致信道拥塞，本机射频无缺陷；ACK fail/RTS fail累加且Rx error高达28~47%，PER间歇突刺峰值96",
+      "file_path": "cases/performance/CASE-008_LK7OS163-2102_强信号下空口拥塞干扰导致游戏加载慢.md",
+      "source": "LK7OS163-2102",
+      "created_at": "2026-06-08",
       "match_count": 0
     }
   ],
