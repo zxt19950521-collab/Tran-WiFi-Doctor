@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-03",
+  "last_updated": "2026-06-08",
   "cases": [
     {
       "id": "CASE-001",
@@ -48,6 +48,42 @@
       "file_path": "cases/p2p-connection/CASE-004_K16SFA-375_PC长待机后P2P连接Auth无回复失败.md",
       "source": "K16SFA-375",
       "created_at": "2026-06-03",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-005",
+      "title": "CN6 Miracast投屏P2P成功但RTSP连接失败",
+      "category": "p2p-connection",
+      "tags": ["Miracast", "WFD", "投屏", "P2P-GO", "P2P-GROUP-FORMATION-FAILURE", "RTSP超时", "MtkNetworkSession", "DHCP成功", "Mgmt Frame TX Fail", "CN6", "MTK平台"],
+      "symptom": "Miracast投屏失败，P2P/DHCP成功但对端未发起RTSP连接",
+      "root_cause": "P2P层管理帧发送失败，或GO模式下WFD Sink未发起RTSP TCP连接（待MTK确认）",
+      "file_path": "cases/p2p-connection/CASE-005_CN6OS16-1398_Miracast投屏P2P成功但RTSP连接失败.md",
+      "source": "CN6OS16-1398",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-006",
+      "title": "蜂窝热点长时间开启导致温升，伴随TetherOffload/BPF网络栈报错",
+      "category": "performance",
+      "tags": ["热点温升", "Tethering", "TetherOffload", "BpfCoordinator", "modem功耗", "灭屏", "蜂窝热点", "conntrack", "LK7", "MTK平台"],
+      "symptom": "蜂窝热点灭屏长时间运行导致过热，电池温升+6.1°C",
+      "root_cause": "modem热点持续高功耗为主因；TetherOffload/BPF报错可能导致额外功耗（待modem确认）",
+      "file_path": "cases/performance/CASE-006_LK7OS163-2134_蜂窝热点长时间开启导致温升.md",
+      "source": "LK7OS163-2134",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-007",
+      "title": "5G AC 隔墙 30m OTA RSSI 弱于对比机，CTIA 开关影响显著",
+      "category": "performance",
+      "tags": ["RSSI", "OTA", "5G AC", "CTIA", "隔墙", "ch36", "射频性能", "CN6", "MTK共性", "弱信号", "对比机测试"],
+      "symptom": "5G AC ch36 隔墙 30m OTA 测试，CN6 RSSI 比对比机低 3—4 dB，不满足 A 标",
+      "root_cause": "CN6 射频接收灵敏度/天线效率弱于对比机；CTIA 开关不一致导致 OTA 与软测数据口径差异",
+      "file_path": "cases/performance/CASE-007_CN6OS16-509_5G_AC隔墙30m_RSSI弱于对比机.md",
+      "source": "CN6OS16-509",
+      "created_at": "2026-06-08",
       "match_count": 0
     }
   ],
