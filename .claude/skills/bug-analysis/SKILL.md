@@ -43,6 +43,46 @@ description: >-
 - 提取关键事件和时间线
 - 识别失败模式
 
+### 步骤 3.5：加载知识文档（硬规则）
+
+**在分析日志过程中，遇到以下关键字时必须先 Read 对应知识文档，再按文档中的规则进行量化分析。不可跳过此步骤。**
+
+#### MTK 驱动日志（kernel log）
+
+| 触发关键字 | 必须加载的知识文档 | 用途 |
+|-----------|-------------------|------|
+| `wlanLinkQualityMonitor` | `knowledge/docs/mtk-link-quality-monitor.md` | 解析 Tx/Rx/PER/Congestion 各字段，按公式计算指标，匹配场景模板 A~F |
+| `scnFsmDumpScanDoneInfo` / `IdleTime` / `MdrdyCnt` / `BAndPCnt` / `CU Value` | `knowledge/docs/mtk-scan-done-info.md` | 解析扫描结果，评估信道质量，用于 ACS/P2P 选信道/拥塞排查 |
+| `roamingFsm` / `apsSearchBssDesc` / `roamingFsmRunEventFail` | `knowledge/docs/mtk-roaming.md`（待建） | 漫游触发原因与流程分析 |
+
+#### WiFi 通用分析（任何 WiFi 问题均需加载）
+
+| 分析阶段 | 必须加载的知识文档 | 用途 |
+|----------|-------------------|------|
+| **TAG 提取阶段** | `knowledge/docs/wifi-tags-knowledge.md` | 按 8 大类 30+ TAG 定义和提取规则，从日志中准确提取 TAG |
+| **问题分析阶段** | `knowledge/docs/wifi-analysis-guide.md` | 确定问题类型后，按文档中的详细步骤逐步分析 |
+| **关键字速查** | `knowledge/docs/wifi-quick-reference.md` | 遇到不确定含义的日志关键字时快速查阅 |
+
+#### 加载方式
+
+```
+分析 kernel log 时：
+  遇到 wlanLinkQualityMonitor → Read knowledge/docs/mtk-link-quality-monitor.md
+  遇到 scnFsmDumpScanDoneInfo → Read knowledge/docs/mtk-scan-done-info.md
+
+分析任何 WiFi 问题时：
+  提取 TAG 前 → Read knowledge/docs/wifi-tags-knowledge.md
+  确定问题类型后 → Read knowledge/docs/wifi-analysis-guide.md
+  遇到不确定关键字 → Read knowledge/docs/wifi-quick-reference.md
+```
+
+#### 硬规则
+
+1. **不可凭记忆分析** — 必须先 Read 知识文档，再按文档中的公式/规则/模板进行分析
+2. **量化指标必须计算** — 如重传率、失败率、Rx 错误率等，必须按公式计算并填入报告
+3. **场景模板必须匹配** — 如 wlanLinkQualityMonitor 的场景 A~F，必须匹配并注明
+4. **TAG 提取必须查表** — 按 wifi-tags-knowledge.md 的提取规则逐项匹配，不遗漏
+
 ### 步骤 4：匹配历史案例
 - 提取当前问题的 TAG
 - 执行 TAG 匹配
