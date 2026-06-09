@@ -15,6 +15,19 @@
   - **事件 A（截图1，19:33:23）**：状态栏 WiFi 满格，系统 Ping/Probe 正常，kernel PER **0~3%**，但 Shopee 显示网络不可用
   - **事件 B（截图2，19:38:33）**：用户 Google 测速 **32.4/15.5 Mbps**、延迟 **28 ms**，系统判定「网络很快」，与 Shopee 报错矛盾
 
+### 用户截图
+
+<div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+  <div style="max-width:280px;">
+    <p><strong>截图1（19:33:23）</strong><br/>Shopee 报「Jaringan Tidak Tersedia」，状态栏 WiFi 满格</p>
+    <img src="assets/CASE-012-screenshots/Screenshot_20260606-193323.jpg" alt="截图1：Shopee 网络错误页（19:33:23）" style="max-width:280px; width:100%; height:auto; border:1px solid #ddd; border-radius:4px;" />
+  </div>
+  <div style="max-width:280px;">
+    <p><strong>截图2（19:38:33）</strong><br/>Google 测速正常，WiFi 32.4/15.5 Mbps</p>
+    <img src="assets/CASE-012-screenshots/Screenshot_20260606-193833.jpg" alt="截图2：Google 测速结果（19:38:33）" style="max-width:280px; width:100%; height:auto; border:1px solid #ddd; border-radius:4px;" />
+  </div>
+</div>
+
 ## 根因结论
 
 ### 主因：Shopee 应用层误报（事件 A，19:33:23）
