@@ -58,6 +58,7 @@
 | PNO扫描失败 | 后台扫描失败 | `Failed to start PNO scan` | 连接失败 |
 | 扫描节流 | 扫描请求被节流 | `Scan request throttled` | 连接延迟 |
 | 未找到网络 | 扫描后未找到目标网络 | `connectToNetwork: Cannot find network`, `No candidates selected` | 连接失败 |
+| WificondScannerImpl失败 | wificond扫描启动失败 | `WificondScannerImpl: Failed to start scan`, `status: -9` | 扫描失败 |
 
 ### 5. 断开连接类
 
@@ -73,6 +74,10 @@
 | 网关不可达 | 默认网关不可达 | `IpReachabilityMonitor: FAILURE`, `Lost default router` | 断开连接 |
 | Doze模式断开 | 省电模式导致断开 | `DeviceIdle ... IDLE` 后断开 | 断开连接 |
 | 不活动解除关联 | 长时间不活动被踢 | `CTRL-EVENT-DISCONNECTED reason=4` | 断开连接 |
+| WifiNetworkQuality断连 | 网络质量策略触发扫描后拆除wlan0 | `isHighPingDelay : true`, `start scan !`, `torn down Iface.*wlan0` | 断开连接 |
+| wlan0 tear down | 框架主动拆除STA接口 | `Successfully torn down Iface:{Name=wlan0` | 断开连接 |
+| 应用层网络误报 | App报不可用但系统WiFi正常 | `SBE: this page is abnormal implementation` | 业务失败 |
+| 截图时刻PER正常 | 截图时刻kernel PER≤10%排除空口问题 | `wlanLinkQualityMonitor ... PER(0)` ~ `PER(10)` | 鉴别应用层误报 |
 
 ### 6. DNS/网络验证类
 
@@ -184,6 +189,11 @@
   "网关不可达": ["IpReachabilityMonitor: FAILURE", "Lost default router"],
   "Doze模式断开": ["DeviceIdle.*IDLE"],
   "不活动解除关联": ["CTRL-EVENT-DISCONNECTED reason=4"],
+  "WifiNetworkQuality断连": ["isHighPingDelay : true", "WifiNetworkQuality: start scan", "torn down Iface.*wlan0"],
+  "wlan0 tear down": ["Successfully torn down Iface.*wlan0", "Type=STA_CONNECTIVITY"],
+  "WificondScannerImpl失败": ["WificondScannerImpl: Failed to start scan", "status: -9"],
+  "应用层网络误报": ["SBE.*abnormal implementation", "this page is abnormal implementation"],
+  "network lost": ["Wifi network lost", "WifiNetworkCheck: Wifi network lost"],
   "DNS超时": ["DnsResolver: DNS query timeout"],
   "DNS解析失败": ["NetworkMonitor: DNS resolution failed"],
   "网络验证失败": ["HTTPS probe failed"],
@@ -307,6 +317,21 @@
     - 关键TAG: 热事件, 热节流, 吞吐量低, 延迟高
     - 典型案例: 待补充
 
+15. **WifiNetworkQuality 触发断连**
+    ```
+    WiFi连接（强信号） → isHighPingDelay=true → start scan → 扫描失败(status=-9) → tear down wlan0 → network lost
+    ```
+    - 关键TAG: WifiNetworkQuality断连, isHighPingDelay, wlan0 tear down, WificondScannerImpl失败, network lost
+    - 典型案例: CASE-012（背景事件，19:34:04）
+
+16. **应用层网络误报（系统WiFi正常）**
+    ```
+    WiFi连接+validated（Ping/Probe正常，PER 0~3%） → 第三方App展示网络不可用 → 状态栏WiFi仍连接 → 测速验证网络可用
+    ```
+    - 关键TAG: 应用层网络误报, SBE abnormal implementation, 截图时刻PER正常
+    - 鉴别: 同时段无 network lost / torn down wlan0；kernel PER 截图时刻 ≤10%
+    - 典型案例: CASE-012（TOS163-35222，主因）
+
 ## 快速匹配规则
 
 ### 按日志关键词匹配
@@ -345,4 +370,10 @@
 | `DnsResolver: DNS query timeout` | DNS超时 | 网络不可用 |
 | `Captive portal detected` | 强制门户 | 网络受限 |
 | `Network has no internet access` | 无互联网 | 网络不可用 |
-| `thermal throttling` | 热节流 | 性能问题
+| `thermal throttling` | 热节流 | 性能问题 |
+| `isHighPingDelay : true` | WifiNetworkQuality断连 | 断开连接 |
+| `torn down Iface.*wlan0` | wlan0 tear down | 断开连接 |
+| `WificondScannerImpl: Failed to start scan` | WificondScannerImpl失败 | 扫描失败 |
+| `Wifi network lost` | network lost | 断开连接 |
+| `SBE.*abnormal implementation` | 应用层网络误报 | 业务失败 |
+| `wlanLinkQualityMonitor.*PER\([0-9]\)` | 截图时刻PER正常 | 鉴别应用层误报 |

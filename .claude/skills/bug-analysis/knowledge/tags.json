@@ -710,6 +710,46 @@
       "description": "吞吐量从数百Mbps瞬间跌到接近0，呈突发-空闲模式",
       "patterns": ["kalPerMonUpdate"],
       "auto_extract": true
+    },
+    {
+      "id": "TAG-088",
+      "name": "WifiNetworkQuality高Ping时延",
+      "category": "disconnect",
+      "description": "传音WifiNetworkQuality检测到高Ping时延后触发网络质量策略",
+      "patterns": ["isHighPingDelay : true", "WifiNetworkQuality: start scan"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-089",
+      "name": "wlan0 tear down",
+      "category": "disconnect",
+      "description": "框架层主动拆除wlan0 STA接口导致WiFi断连",
+      "patterns": ["Successfully torn down Iface.*wlan0", "Type=STA_CONNECTIVITY"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-090",
+      "name": "WificondScannerImpl扫描失败",
+      "category": "scan-failure",
+      "description": "WificondScannerImpl启动扫描失败，常见于status=-9",
+      "patterns": ["WificondScannerImpl: Failed to start scan", "status: -9"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-091",
+      "name": "应用层网络误报",
+      "category": "disconnect",
+      "description": "第三方App报网络不可用但系统WiFi仍连接且Ping/Probe正常，kernel PER截图时刻通常≤10%",
+      "patterns": ["SBE.*abnormal implementation", "libshp_weaknetwork"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-092",
+      "name": "截图时刻PER正常",
+      "category": "performance",
+      "description": "wlanLinkQualityMonitor在问题截图时刻PER极低，排除空口高PER导致应用报错",
+      "patterns": ["wlanLinkQualityMonitor.*PER\\([0-9]\\)", "wlanLinkQualityMonitor.*PER\\(1[0-9]\\)"],
+      "auto_extract": false
     }
   ],
   "extraction_rules": {
@@ -781,6 +821,12 @@
       "ACK fail持续累加": ["ACK fail:"],
       "DTIM配置失败": ["setDtimMultiplier failed"],
       "吞吐突发-空闲波动": ["kalPerMonUpdate"],
+      "WifiNetworkQuality高Ping时延": ["isHighPingDelay : true", "WifiNetworkQuality: start scan"],
+      "wlan0 tear down": ["Successfully torn down Iface.*wlan0", "torn down Iface"],
+      "WificondScannerImpl扫描失败": ["WificondScannerImpl: Failed to start scan", "status: -9"],
+      "应用层网络误报": ["SBE.*abnormal implementation", "this page is abnormal implementation"],
+      "截图时刻PER正常": ["wlanLinkQualityMonitor.*PER\\([0-9]\\)", "wlanLinkQualityMonitor.*PER\\(1[0-9]\\)"],
+      "network lost": ["Wifi network lost", "WifiNetworkCheck: Wifi network lost"],
       "屏幕状态变化": ["screen on", "screen off"],
       "Doze模式": ["DeviceIdle", "IDLE"],
       "飞行模式": ["airplane mode"],
@@ -832,6 +878,16 @@
       "name": "强信号空口拥塞",
       "chain": ["RSSI正常(-30dBm)", "Rx error高(38%)", "ACK fail累加", "PER间歇突刺", "吞吐波动", "游戏加载慢"],
       "case_ref": "CASE-008"
+    },
+    {
+      "name": "WifiNetworkQuality触发断连",
+      "chain": ["强信号", "isHighPingDelay=true", "start scan", "WificondScannerImpl status=-9", "torn down wlan0", "network lost"],
+      "case_ref": "CASE-012"
+    },
+    {
+      "name": "应用层网络误报",
+      "chain": ["WiFi连接+validated", "Ping/Probe正常", "PER 0~3%", "App展示网络不可用", "测速验证网络可用"],
+      "case_ref": "CASE-012"
     }
   ]
 }

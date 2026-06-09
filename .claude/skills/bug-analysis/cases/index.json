@@ -133,6 +133,18 @@
       "source": "CN6OS16-509",
       "created_at": "2026-06-08",
       "match_count": 0
+    },
+    {
+      "id": "CASE-012",
+      "title": "Shopee 应用层弱网误报 — WiFi/PER正常时报网络不可用，测速佐证系统网络可用",
+      "category": "disconnect",
+      "tags": ["SBE abnormal implementation", "libshp_weaknetwork", "Shopee", "应用层误报", "强信号", "PER低", "wlanLinkQualityMonitor", "LK7", "印度尼西亚", "WifiNetworkQuality", "isHighPingDelay", "torn down wlan0"],
+      "symptom": "Shopee 提示「jaringan tidak tersedia」：截图1时系统WiFi/Ping/PER正常但App报错；截图2测速32.4Mbps佐证系统网络可用",
+      "root_cause": "主因：Shopee弱网库/业务API与系统Connectivity不一致；背景：19:34:04 WifiNetworkQuality扫描失败后tear down wlan0",
+      "file_path": "cases/disconnect/CASE-012_TOS163-35222_Shopee双故障应用层误报与WifiNetworkQuality断连.md",
+      "source": "TOS163-35222",
+      "created_at": "2026-06-08",
+      "match_count": 0
     }
   ],
   "categories": {
