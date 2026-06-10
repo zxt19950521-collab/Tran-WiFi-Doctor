@@ -104,11 +104,24 @@
 |------|------|
 | `knowledge/tags.json` | 87 个 TAG 定义 + 提取规则 + 7 条问题链条，用于案例匹配与 TAG 关联分析 |
 
+### 绘图工具
+
+| 工具 | 路径 | 用途 |
+|------|------|------|
+| WiFi Link Quality 绘图 | `scripts/plot_wifi_link_quality.py` | 从 kernel log 提取 Tput/Tx/Rx/RSSI/PER 绘制四象限曲线图 |
+| Kernel Metrics 绘图 | `scripts/plot_kernel_metrics.py` | 从 kernel log 提取 kalPerMonUpdate 吞吐量和 TX 延迟曲线 |
+
+**调用方式**：
+```bash
+python scripts/plot_wifi_link_quality.py <kernel_log_file> [output_dir]
+```
+
 **加载方式**：
 1. 分析 kernel 日志遇到 MTK 关键字时，读取对应 MTK 知识文档做量化分析
 2. 提取 TAG 时，读取 `wifi-tags-knowledge.md` 或查询 `tags.json` 的提取规则
 3. 确定问题类型后，读取 `wifi-analysis-guide.md` 按步骤分析
-4. 需要快速查关键字含义时，读取 `wifi-quick-reference.md`
+4. 遇到不确定关键字时，读取 `wifi-quick-reference.md`
+5. **分析完成后，调用 `plot_wifi_link_quality.py` 生成曲线图**
 
 ## 分析策略
 

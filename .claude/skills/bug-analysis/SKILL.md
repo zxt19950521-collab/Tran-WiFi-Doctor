@@ -83,6 +83,35 @@ description: >-
 3. **场景模板必须匹配** — 如 wlanLinkQualityMonitor 的场景 A~F，必须匹配并注明
 4. **TAG 提取必须查表** — 按 wifi-tags-knowledge.md 的提取规则逐项匹配，不遗漏
 
+### 步骤 3.6：绘制链路质量曲线图（硬规则）
+
+**分析 kernel log 时，必须调用绘图脚本生成 Tput/Tx/Rx/RSSI/PER 四象限曲线图，作为报告附件。**
+
+#### 脚本信息
+- **路径**: `scripts/plot_wifi_link_quality.py`
+- **功能**: 从 kernel log 提取 Tput、Tx(rate)、Rx(rate)、rssi、PER 数据，绘制四象限时间序列曲线图
+- **输出**: PNG 图片（300dpi），保存到日志同目录或指定目录
+
+#### 调用方式
+
+```bash
+# 命令行调用
+python scripts/plot_wifi_link_quality.py <kernel_log_file> [output_dir]
+
+# 示例：输出到工单目录
+python scripts/plot_wifi_link_quality.py AI-result/issues/TOS170-2812/logs/kernel_log.localtime AI-result/issues/TOS170-2812/
+```
+
+#### 执行时机
+- 步骤 3 分析日志完成后，**必须**执行此步骤
+- 对每个 kernel log 文件（.localtime）调用一次
+- 生成的曲线图路径记录在分析报告中
+
+#### 硬规则
+1. **不可跳过** — 有 kernel log 时必须绘图
+2. **输出路径记录** — 生成的 PNG 路径必须写入报告
+3. **多文件分别绘制** — 如有多个 kernel log，每个单独绘制
+
 ### 步骤 4：匹配历史案例
 - 提取当前问题的 TAG
 - 执行 TAG 匹配
