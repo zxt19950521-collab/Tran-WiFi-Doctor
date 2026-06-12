@@ -309,10 +309,11 @@ def plot_from_file(file_path, output_dir=None, save_filename="kernel_log_curves.
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(f"用法: python {sys.argv[0]} <kernel_log_file> [output_dir]")
-        print(f"示例: python {sys.argv[0]} AI-result/issues/XXX/logs/kernel_log.localtime")
+        print(f"用法: python {sys.argv[0]} <kernel_log_file> [output_dir] [save_filename]")
+        print(f"示例: python {sys.argv[0]} kernel_log.localtime output/ ISSUE-123_link_quality.png")
         sys.exit(1)
 
     file_path = sys.argv[1]
     output_dir = sys.argv[2] if len(sys.argv) > 2 else None
-    plot_from_file(file_path, output_dir)
+    save_filename = sys.argv[3] if len(sys.argv) > 3 else "kernel_log_curves.png"
+    plot_from_file(file_path, output_dir, save_filename)

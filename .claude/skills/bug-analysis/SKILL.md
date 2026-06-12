@@ -37,8 +37,59 @@ description: >-
 - 读取 JSON，提取日志路径
 - 下载/拷贝日志到本地
 
+### 步骤 2.5：日志完整性检查 + MTK 时间转换（硬规则）
+
+**日志下载完成后，必须先执行此步骤，再进入分析。不可跳过。**
+
+#### 2.5.1 日志完整性检查
+
+扫描下载目录，确认以下 4 类日志是否存在：
+
+| 日志类型 | 目录/文件特征 | 必需 |
+|----------|--------------|------|
+| **main log** | `main_log*` 或 `APLog*/main_log*` | 是 |
+| **kernel log** | `kernel_log*` 或 `APLog*/kernel_log*` | 是 |
+| **tcpdump** | `tcpdump*`、`*.pcap`、`*.pcapng` | 否（有则分析） |
+| **空口 log** | `air*`、`sniffer*`、`*.pcap`（802.11 帧）、`connsys_picus_log*` | 否（有则必须分析） |
+
+**检查规则：**
+1. 递归扫描日志目录（含子目录），匹配文件名模式
+2. 生成日志清单，标注每类日志的路径和存在状态
+3. **缺失日志必须在最终报告中明确指出**，格式：
+   ```
+   ## 日志完整性
+   - [x] main log: `path/to/main_log`
+   - [x] kernel log: `path/to/kernel_log`
+   - [ ] tcpdump: **未提供**
+   - [ ] 空口 log: **未提供**
+   ```
+4. 仅有 main log 或仅有 kernel log 时，**必须注明分析局限性**
+
+#### 2.5.2 MTK 平台识别与 kernel log 时间转换
+
+**判断是否为 MTK 平台：**
+- 检查 kernel log 中是否包含 `[wlan]`、`wlanLinkQualityMonitor`、`kalPerMonUpdate`、`MTK` 等关键字
+- 或检查日志目录名是否包含 `APLog_` 前缀（MTK 联发科平台典型命名）
+
+**如果是 MTK 平台，必须执行 kernel log 时间转换：**
+1. 找到所有 `kernel_log*` 文件（排除已有的 `.localtime` 文件）
+2. 对每个 kernel_log 调用转换脚本：
+   ```bash
+   python scripts/kernel_time_convert.py <kernel_log_file>
+   ```
+   或 PowerShell 版本：
+   ```powershell
+   .\scripts\kernel_time_convert.ps1 -Path "<kernel_log_path>"
+   ```
+3. 转换后生成 `.localtime` 后缀文件，时间戳变为 `MM-DD HH:MM:SS.mmm` 格式
+4. **后续所有 kernel log 分析必须使用 `.localtime` 文件**，以便与 main log 时间对齐
+
+**硬规则：**
+1. **未完成日志检查不可进入分析步骤**
+2. **MTK kernel_log 未转换时间不可开始分析**（log-analysis.md 硬规则 #1）
+3. **缺失日志必须在报告中标注**，不可忽略
+
 ### 步骤 3：分析日志
-- 日志预处理（MTK kernel_log 时间转换）
 - 按问题类型选择分析策略
 - 提取关键事件和时间线
 - 识别失败模式
@@ -85,32 +136,55 @@ description: >-
 
 ### 步骤 3.6：绘制链路质量曲线图（硬规则）
 
-**分析 kernel log 时，必须调用绘图脚本生成 Tput/Tx/Rx/RSSI/PER 四象限曲线图，作为报告附件。**
+**分析 kernel log 时，必须调用绘图脚本生成曲线图，作为报告附件插入。**
 
-#### 脚本信息
+#### 脚本 1：链路质量四象限图
 - **路径**: `scripts/plot_wifi_link_quality.py`
-- **功能**: 从 kernel log 提取 Tput、Tx(rate)、Rx(rate)、rssi、PER 数据，绘制四象限时间序列曲线图
-- **输出**: PNG 图片（300dpi），保存到日志同目录或指定目录
+- **功能**: 从 kernel log 提取 Tput、Tx(rate)、Rx(rate)、RSSI、PER 数据，绘制四象限时间序列曲线图
+- **输出**: PNG 图片（300dpi）
 
-#### 调用方式
+#### 脚本 2：Kernel Metrics 图
+- **路径**: `scripts/plot_kernel_metrics.py`
+- **功能**: 从 kernel log 提取 kalPerMonUpdate 吞吐量和 halDumpMsduReportStats TX 延迟，绘制三象限图（LQ / Throughput / PER）
+- **输出**: PNG 图片（150dpi）
+
+#### 文件命名规则
+
+**必须按工单号命名，输出到工单目录：**
 
 ```bash
-# 命令行调用
-python scripts/plot_wifi_link_quality.py <kernel_log_file> [output_dir]
+# 脚本 1：链路质量四象限图
+python scripts/plot_wifi_link_quality.py <kernel_log.localtime> <output_dir> <ISSUE_KEY>_link_quality.png
 
-# 示例：输出到工单目录
-python scripts/plot_wifi_link_quality.py AI-result/issues/TOS170-2812/logs/kernel_log.localtime AI-result/issues/TOS170-2812/
+# 脚本 2：Kernel Metrics 图
+python scripts/plot_kernel_metrics.py <kernel_log.localtime> <output_dir> <ISSUE_KEY>_kernel_metrics.png
+
+# 示例
+python scripts/plot_wifi_link_quality.py AI-result/issues/TOS170-2812/logs/kernel_log.localtime AI-result/issues/TOS170-2812/ TOS170-2812_link_quality.png
+python scripts/plot_kernel_metrics.py AI-result/issues/TOS170-2812/logs/kernel_log.localtime AI-result/issues/TOS170-2812/ TOS170-2812_kernel_metrics.png
 ```
 
 #### 执行时机
 - 步骤 3 分析日志完成后，**必须**执行此步骤
-- 对每个 kernel log 文件（.localtime）调用一次
-- 生成的曲线图路径记录在分析报告中
+- 对每个 kernel log 文件（.localtime）各调用两个脚本
+- 生成的曲线图**必须插入报告**（使用 Markdown 图片语法）
+
+#### 报告中插入方式
+```markdown
+## 【链路质量曲线图】
+
+### 链路质量四象限图
+![链路质量曲线](<ISSUE_KEY>_link_quality.png)
+
+### Kernel Metrics
+![Kernel Metrics](<ISSUE_KEY>_kernel_metrics.png)
+```
 
 #### 硬规则
 1. **不可跳过** — 有 kernel log 时必须绘图
-2. **输出路径记录** — 生成的 PNG 路径必须写入报告
-3. **多文件分别绘制** — 如有多个 kernel log，每个单独绘制
+2. **图片必须插入报告** — 使用 `![描述](文件名)` 语法嵌入报告正文
+3. **文件名按工单号命名** — 格式 `{ISSUE_KEY}_link_quality.png` / `{ISSUE_KEY}_kernel_metrics.png`
+4. **多文件分别绘制** — 如有多个 kernel log，每个单独绘制，文件名加序号 `_1` `_2`
 
 ### 步骤 4：匹配历史案例
 - 提取当前问题的 TAG
@@ -195,6 +269,9 @@ python scripts/plot_wifi_link_quality.py AI-result/issues/TOS170-2812/logs/kerne
 2. **案例匹配结果必须出现在报告中**
 3. **新案例必须用户确认后才能入库**
 4. **知识库更新必须人工审核**
+5. **日志下载后必须执行完整性检查**（步骤 2.5）— 确认 main log / kernel log / tcpdump / 空口 log 存在状态，缺失日志必须在报告中标注
+6. **MTK 平台 kernel_log 必须先转换时间再分析** — 未转换时间的 kernel_log 不可进入分析步骤
+7. **仅有单一类型日志时必须注明分析局限性** — 不可仅凭 kernel log 或 main log 下完整结论
 
 ## 输出目标
 

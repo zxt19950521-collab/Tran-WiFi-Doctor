@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-05",
+  "last_updated": "2026-06-12",
   "cases": [
     {
       "id": "CASE-001",
@@ -144,6 +144,18 @@
       "file_path": "cases/disconnect/CASE-012_TOS163-35222_Shopee双故障应用层误报与WifiNetworkQuality断连.md",
       "source": "TOS163-35222",
       "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-013",
+      "title": "双频mesh下5G漫游被Auth Status33(带宽不足)拒绝，困在上行恶化的2.4G导致游戏卡顿（WiFi未断开）",
+      "category": "performance",
+      "tags": ["WiFi卡顿", "漫游失败", "Auth拒绝", "Status Code 33", "STATUS_CODE_ASSOC_DENIED_BANDWIDTH", "AP带宽不足", "band-steering", "5G漫游被拒", "困在2.4G", "上行链路失效", "RTS fail高", "ACK fail高", "信道空闲非拥塞", "PER阵发100%", "吞吐塌陷", "漫游churn", "无断开", "游戏卡顿", "双频mesh", "对比机正常", "MTK mt6878", "LK7", "印尼"],
+      "symptom": "WiFi未断开但游戏偶现卡顿(18:54谷底)，换别的手机连同一WiFi正常；连双频mesh UCOK",
+      "root_cause": "5G漫游87次被Auth Status33(带宽不足,AP拒绝接纳)拒绝困在2.4G，叠加该2.4G上行RTS/ACK fail高、PER阵发100%、信道却空闲，吞吐间歇塌陷致卡顿；非应用层问题",
+      "file_path": "cases/performance/CASE-013_LK7OS163-2188_5G漫游被Status33拒绝困在2.4G导致游戏卡顿.md",
+      "source": "LK7OS163-2188",
+      "created_at": "2026-06-12",
       "match_count": 0
     }
   ],

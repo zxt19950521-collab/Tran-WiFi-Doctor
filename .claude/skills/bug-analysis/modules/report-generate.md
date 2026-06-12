@@ -14,6 +14,11 @@
 
 ## 报告结构
 
+### 0. 日志完整性（硬规则）
+- 列出 4 类日志的存在状态（main log / kernel log / tcpdump / 空口 log）
+- 缺失日志必须标注 **未提供**
+- 缺失日志对分析结论的影响说明
+
 ### 1. 项目匹配
 - 匹配项目
 - 匹配案例
@@ -63,6 +68,10 @@
 - 替换模板中的占位符
 - 插入分析结果
 - 插入案例匹配结果
+- **插入曲线图** — 在「链路质量曲线图」章节使用 `![描述](文件名)` 嵌入 PNG 图片
+  - `{ISSUE_KEY}_link_quality.png` — 链路质量四象限图
+  - `{ISSUE_KEY}_kernel_metrics.png` — Kernel Metrics 图
+  - 图片文件必须与报告文件保存在同一目录
 
 ### 步骤 3: 保存报告
 - 保存到 `<ISSUE_KEY>/<ISSUE_KEY>-analysis.md`
@@ -89,3 +98,5 @@ python scripts/feishu_import_docx.py --file <报告路径> --title "<标题>"
 1. **案例匹配结果必须出现在报告中**
 2. **报告必须保存到本地**
 3. **飞书推送必须执行**
+4. **日志完整性必须作为报告第一个章节呈现** — 按 checklist 格式列出 4 类日志状态，缺失日志注明对分析的影响
+5. **曲线图必须插入报告** — 有 kernel log 时，生成的 `{ISSUE_KEY}_link_quality.png` 和 `{ISSUE_KEY}_kernel_metrics.png` 必须以 `![]()` 语法嵌入报告正文，图片与报告同目录
