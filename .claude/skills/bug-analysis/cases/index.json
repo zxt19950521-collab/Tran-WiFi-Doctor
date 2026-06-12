@@ -157,6 +157,18 @@
       "source": "LK7OS163-2188",
       "created_at": "2026-06-12",
       "match_count": 0
+    },
+    {
+      "id": "CASE-014",
+      "title": "游戏大流量触发双频误漫游WRONG_KEY导致network lost（Roblox Error 277）",
+      "category": "disconnect",
+      "tags": ["双频误漫游", "scanCalculateTotalScore", "5G频段加分BD200", "WRONG_KEY", "network lost", "乒乓漫游", "同ESS多BSSID", "物理速率坍塌", "PER高", "游戏断网", "Roblox", "MTK driver", "LK7", "印度尼西亚"],
+      "symptom": "Roblox游戏渲染时WiFi突然断开，Error 277；强信号下大流量触发2.4G→5G误漫游，WRONG_KEY后network lost约7s",
+      "root_cause": "MTK scanCalculateTotalScore偏好5G(BD+200)且扫描态cRSSI低估当前AP，高负载下误切弱5G BSS后4-Way握手失败，叠加network lost导致游戏断线；后续形成2.4G/5G乒乓漫游",
+      "file_path": "cases/disconnect/CASE-014_TOS163-35926_游戏大流量双频误漫游WRONG_KEY断网.md",
+      "source": "TOS163-35926",
+      "created_at": "2026-06-12",
+      "match_count": 0
     }
   ],
   "categories": {
