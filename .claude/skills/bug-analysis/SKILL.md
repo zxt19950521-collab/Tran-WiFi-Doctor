@@ -138,9 +138,10 @@ description: >-
 
 **分析 kernel log 时，必须调用绘图脚本生成曲线图，作为报告附件插入。**
 
-#### 脚本 1：链路质量四象限图
+#### 脚本 1：链路质量四象限图（支持连接状态子图）
 - **路径**: `scripts/plot_wifi_link_quality.py`
 - **功能**: 从 kernel log 提取 Tput、Tx(rate)、Rx(rate)、RSSI、PER 数据，绘制四象限时间序列曲线图
+- **扩展功能**: 使用 `-m` 参数可同时传入 main_log，将连接状态图作为第5个子图插入，时间自动对齐，线宽一致
 - **输出**: PNG 图片（300dpi）
 
 #### 脚本 2：Kernel Metrics 图
@@ -148,25 +149,36 @@ description: >-
 - **功能**: 从 kernel log 提取 kalPerMonUpdate 吞吐量和 halDumpMsduReportStats TX 延迟，绘制三象限图（LQ / Throughput / PER）
 - **输出**: PNG 图片（150dpi）
 
-#### 文件命名规则
+#### 脚本 3：连接状态时间轴图
+- **路径**: `scripts/plot_connection_timeline.py`
+- **功能**: 从 main_log 提取 wlan/P2P/softap 连接状态事件，绘制甘特图式时间轴
+- **输出**: PNG 图片（300dpi）
 
-**必须按工单号命名，输出到工单目录：**
+#### 文件命名规则与多文件合并
+
+**必须按工单号命名，输出到工单目录。多个 kernel log 合并到同一张图。**
 
 ```bash
-# 脚本 1：链路质量四象限图
-python scripts/plot_wifi_link_quality.py <kernel_log.localtime> <output_dir> <ISSUE_KEY>_link_quality.png
+# 单文件
+python scripts/plot_wifi_link_quality.py kernel_log.localtime -o output/ -f ISSUE-123_link_quality.png
+python scripts/plot_kernel_metrics.py kernel_log.localtime -o output/ -f ISSUE-123_kernel_metrics.png
 
-# 脚本 2：Kernel Metrics 图
-python scripts/plot_kernel_metrics.py <kernel_log.localtime> <output_dir> <ISSUE_KEY>_kernel_metrics.png
+# 多文件合并（自动按时间排序合并到一张图）
+python scripts/plot_wifi_link_quality.py kernel_1.localtime kernel_2.localtime -o output/ -f ISSUE-123_link_quality.png
+python scripts/plot_kernel_metrics.py kernel_1.localtime kernel_2.localtime -o output/ -f ISSUE-123_kernel_metrics.png
 
-# 示例
-python scripts/plot_wifi_link_quality.py AI-result/issues/TOS170-2812/logs/kernel_log.localtime AI-result/issues/TOS170-2812/ TOS170-2812_link_quality.png
-python scripts/plot_kernel_metrics.py AI-result/issues/TOS170-2812/logs/kernel_log.localtime AI-result/issues/TOS170-2812/ TOS170-2812_kernel_metrics.png
+# 带连接状态图（推荐：一张图包含所有信息）
+python scripts/plot_wifi_link_quality.py kernel.localtime -m main_log -o output/ -f ISSUE-123_link_quality.png
+python scripts/plot_wifi_link_quality.py kernel_1.localtime kernel_2.localtime -m main_log_1 main_log_2 -o output/ -f ISSUE-123_link_quality.png
+
+# 连接状态时间轴（单独生成）
+python scripts/plot_connection_timeline.py main_log_1 main_log_2 -o output/ -f ISSUE-123_timeline.png
 ```
 
 #### 执行时机
 - 步骤 3 分析日志完成后，**必须**执行此步骤
-- 对每个 kernel log 文件（.localtime）各调用两个脚本
+- 收集所有 `kernel_log*.localtime` 文件，**一次性传入**两个 kernel 脚本
+- 收集所有 `main_log*` 文件，**一次性传入**连接状态时间轴脚本
 - 生成的曲线图**必须插入报告**（使用 Markdown 图片语法）
 
 #### 报告中插入方式
@@ -184,7 +196,66 @@ python scripts/plot_kernel_metrics.py AI-result/issues/TOS170-2812/logs/kernel_l
 1. **不可跳过** — 有 kernel log 时必须绘图
 2. **图片必须插入报告** — 使用 `![描述](文件名)` 语法嵌入报告正文
 3. **文件名按工单号命名** — 格式 `{ISSUE_KEY}_link_quality.png` / `{ISSUE_KEY}_kernel_metrics.png`
-4. **多文件分别绘制** — 如有多个 kernel log，每个单独绘制，文件名加序号 `_1` `_2`
+4. **多文件合并到一张图** — 如有多个 kernel log，全部传入同一命令，脚本自动按时间排序合并
+
+### 步骤 3.7：绘制连接状态时间轴图（硬规则）
+
+**有 main_log 时，必须调用绘图脚本生成连接状态时间轴图，作为报告附件插入。**
+
+#### 推荐方式：合并到 Link Quality 图中
+
+使用 `plot_wifi_link_quality.py` 的 `-m` 参数，可将连接状态图作为第5个子图插入，与 Tput/Tx-Rx/RSSI/PER 时间轴自动对齐，线宽一致（1.2）。
+
+```bash
+# 推荐：一张图包含所有信息
+python scripts/plot_wifi_link_quality.py kernel.localtime -m main_log -o output/ -f ISSUE-123_link_quality.png
+```
+
+#### 备选方式：单独生成连接状态图
+
+使用 `plot_connection_timeline.py` 单独生成连接状态时间轴图。
+
+#### 脚本
+- **路径**: `scripts/plot_connection_timeline.py`
+- **功能**: 从 main_log 提取 wlan/P2P/softap 连接状态事件，绘制甘特图式时间轴
+- **数据来源**: main_log（非 kernel_log）
+- **输出**: PNG 图片（300dpi）
+
+#### 解析的事件
+
+| 接口 | 开始事件 | 结束事件 | 提取信息 |
+|------|---------|---------|---------|
+| wlan | `CTRL-EVENT-CONNECTED` | `CTRL-EVENT-DISCONNECTED` | SSID、BSSID、freq |
+| P2P | `P2P-GROUP-STARTED` | `P2P-GROUP-REMOVED` | SSID、角色、freq、GO MAC |
+| softap | `AP-ENABLED` | `AP-DISABLED` | - |
+
+#### 文件命名规则与多文件合并
+
+```bash
+# 单文件
+python scripts/plot_connection_timeline.py main_log -o output/ -f ISSUE_timeline.png
+
+# 多文件合并
+python scripts/plot_connection_timeline.py main_log_1 main_log_2 -o output/ -f ISSUE_timeline.png
+```
+
+#### 执行时机
+- 步骤 3 分析日志完成后，**必须**执行此步骤
+- 收集所有 `main_log*` 文件，**一次性传入**脚本
+- 生成的时间轴图**必须插入报告**
+
+#### 报告中插入方式
+```markdown
+## 【连接状态时间轴】
+
+![连接状态时间轴]({ISSUE_KEY}_timeline.png)
+```
+
+#### 硬规则
+1. **不可跳过** — 有 main_log 时必须绘图
+2. **图片必须插入报告** — 使用 `![描述](文件名)` 语法嵌入报告正文
+3. **文件名按工单号命名** — 格式 `{ISSUE_KEY}_timeline.png`
+4. **多文件合并到一张图** — 如有多个 main_log，全部传入同一命令
 
 ### 步骤 4：匹配历史案例
 - 提取当前问题的 TAG
@@ -204,9 +275,50 @@ python scripts/plot_kernel_metrics.py AI-result/issues/TOS170-2812/logs/kernel_l
 - 返回飞书云文档 URL
 
 ### 步骤 7：案例入库（用户确认）
-- 提取案例素材
+
+#### 7.1 提取案例素材
+- 从分析报告中提取案例结构化数据
+- 生成案例 Markdown 文件（按命名规则 `CASE-{序号}_{来源}_{标题}.md`）
+- 更新 `cases/index.json` 追加新条目
+
+#### 7.2 用户确认
+- 展示案例标题、TAG、根因结论
 - 询问用户是否入库
-- 用户确认后追加到案例库
+- 用户确认后执行写入
+
+#### 7.3 最小提交（硬规则）
+
+**提交时只允许提交案例相关文件，禁止混入其他改动，防止后续同步冲突。**
+
+允许提交的文件（仅此两类）：
+```
+.claude/skills/bug-analysis/cases/<分类>/CASE-XXX_xxx.md   ← 案例文件
+.claude/skills/bug-analysis/cases/index.json               ← 案例索引
+```
+
+禁止提交的文件：
+```
+.claude/skills/bug-analysis/knowledge/*    ← 知识文档（单独提交）
+.claude/skills/bug-analysis/modules/*      ← 模块定义
+.claude/skills/bug-analysis/SKILL.md       ← 技能定义
+.claude/skills/bug-analysis/templates/*    ← 报告模板
+scripts/*                                  ← 脚本
+AI-result/*                                ← 分析报告和日志
+*.md（项目根目录）                           ← 项目文档
+```
+
+**提交命令（精确 add，禁止 git add . / git add -A）：**
+```bash
+cd .claude/skills/bug-analysis/cases
+git add <分类>/CASE-XXX_xxx.md
+git add index.json
+git commit -m "feat: add CASE-XXX <简短标题>"
+```
+
+**提交前检查：**
+1. `git status` 确认暂存区只有案例文件 + index.json
+2. 如有其他文件被意外修改，`git restore` 撤回后再提交
+3. 提交后 `git status` 确认工作区干净
 
 ## 模块引用
 
@@ -272,6 +384,7 @@ python scripts/plot_kernel_metrics.py AI-result/issues/TOS170-2812/logs/kernel_l
 5. **日志下载后必须执行完整性检查**（步骤 2.5）— 确认 main log / kernel log / tcpdump / 空口 log 存在状态，缺失日志必须在报告中标注
 6. **MTK 平台 kernel_log 必须先转换时间再分析** — 未转换时间的 kernel_log 不可进入分析步骤
 7. **仅有单一类型日志时必须注明分析局限性** — 不可仅凭 kernel log 或 main log 下完整结论
+8. **案例提交必须最小改动** — 只 commit 案例文件 + index.json，禁止混入知识文档/脚本/模板等其他改动，用 `git add <具体文件>` 精确暂存
 
 ## 输出目标
 

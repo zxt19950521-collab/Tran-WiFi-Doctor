@@ -111,12 +111,27 @@
 
 | 工具 | 路径 | 用途 |
 |------|------|------|
-| WiFi Link Quality 绘图 | `scripts/plot_wifi_link_quality.py` | 从 kernel log 提取 Tput/Tx/Rx/RSSI/PER 绘制四象限曲线图 |
+| WiFi Link Quality 绘图 | `scripts/plot_wifi_link_quality.py` | 从 kernel log 提取 Tput/Tx/Rx/RSSI/PER 绘制四象限曲线图，支持 `-m` 参数添加连接状态子图 |
 | Kernel Metrics 绘图 | `scripts/plot_kernel_metrics.py` | 从 kernel log 提取 kalPerMonUpdate 吞吐量和 TX 延迟曲线 |
+| 连接状态时间轴 | `scripts/plot_connection_timeline.py` | 从 main log 提取 wlan/P2P/softap 连接状态，绘制甘特图式时间轴（可单独使用） |
+
+**多文件合并**：多个 kernel log 传入同一命令，自动按时间排序合并到一张图。
 
 **调用方式**：
 ```bash
-python scripts/plot_wifi_link_quality.py <kernel_log_file> [output_dir]
+# 单文件（仅 link quality）
+python scripts/plot_wifi_link_quality.py <kernel_log_file> -o <output_dir> -f <filename.png>
+
+# 多文件合并
+python scripts/plot_wifi_link_quality.py file1.localtime file2.localtime -o <output_dir> -f <filename.png>
+
+# 带连接状态子图（推荐：一张图包含所有信息，时间对齐，线宽一致）
+python scripts/plot_wifi_link_quality.py kernel.localtime -m main_log -o <output_dir> -f <filename.png>
+python scripts/plot_wifi_link_quality.py kernel_1.localtime kernel_2.localtime -m main_log_1 main_log_2 -o <output_dir> -f <filename.png>
+
+# 连接状态时间轴（单独生成）
+python scripts/plot_connection_timeline.py <main_log_file> -o <output_dir> -f <filename.png>
+python scripts/plot_connection_timeline.py main_log_1 main_log_2 -o <output_dir> -f <filename.png>
 ```
 
 **加载方式**：
@@ -125,6 +140,7 @@ python scripts/plot_wifi_link_quality.py <kernel_log_file> [output_dir]
 3. 确定问题类型后，读取 `wifi-analysis-guide.md` 按步骤分析
 4. 遇到不确定关键字时，读取 `wifi-quick-reference.md`
 5. **分析完成后，调用 `plot_wifi_link_quality.py` 生成曲线图**
+6. **有 main_log 时，使用 `-m` 参数将连接状态图合并到 link quality 图中（推荐）**
 
 ## 分析策略
 

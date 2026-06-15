@@ -1,4 +1,4 @@
-"""案例提交工具 - 将新案例推送到远程仓库"""
+"""案例提交工具 - 将新案例推送到远程仓库（最小提交：仅案例文件 + index.json）"""
 
 import subprocess
 import sys
@@ -11,6 +11,35 @@ from mcp.server.fastmcp import FastMCP
 
 CASES_DIR = PROJECT_ROOT / ".claude" / "skills" / "bug-analysis" / "cases"
 REMOTE_URL = "https://github.com/zxt19950521-collab/Tran-WiFi-Doctor.git"
+
+# 允许提交的文件模式（白名单）
+ALLOWED_PATTERNS = [
+    "index.json",                    # 案例索引
+    "p2p-connection/CASE-*.md",      # P2P 案例
+    "dhcp-failure/CASE-*.md",        # DHCP 案例
+    "auth-failure/CASE-*.md",        # 认证案例
+    "scan-failure/CASE-*.md",        # 扫描案例
+    "disconnect/CASE-*.md",          # 断连案例
+    "performance/CASE-*.md",         # 性能案例
+]
+
+
+def _is_allowed_file(file_path: str) -> bool:
+    """检查文件是否在白名单内"""
+    file_path = file_path.strip()
+    if not file_path:
+        return False
+    # 去掉可能的 M/A/D 前缀（git status --porcelain 格式）
+    clean_path = file_path.split()[-1] if file_path else ""
+    for pattern in ALLOWED_PATTERNS:
+        if clean_path == pattern or clean_path.endswith(pattern.replace("*", "")):
+            return True
+        # 通配符匹配
+        if "*" in pattern:
+            prefix = pattern.split("*")[0]
+            if clean_path.startswith(prefix) and clean_path.endswith(".md"):
+                return True
+    return False
 
 
 def _run_git(args: list[str], cwd: Path) -> tuple[int, str, str]:
@@ -28,7 +57,11 @@ def _run_git(args: list[str], cwd: Path) -> tuple[int, str, str]:
 def register(mcp: FastMCP):
     @mcp.tool()
     def commit_cases(message: str = "") -> str:
-        """Commit and push new cases to the remote repository.
+        """Commit and push new cases to the remote repository (minimal commit).
+        Only commits case markdown files + index.json. Other files (knowledge docs,
+        scripts, templates, SKILL.md, etc.) are automatically skipped to prevent
+        merge conflicts when others sync.
+
         Use this after adding new case files to the cases directory.
         The cases directory is located at .claude/skills/bug-analysis/cases/.
         Remote: https://github.com/zxt19950521-collab/Tran-WiFi-Doctor.git
@@ -37,7 +70,8 @@ def register(mcp: FastMCP):
         1. Fetch latest changes from remote
         2. Check if remote has new commits
         3. Pull and rebase if needed (to sync with others' updates)
-        4. Then commit and push local changes
+        4. Stage ONLY case-related files (whitelist: CASE-*.md + index.json)
+        5. Commit and push
 
         Args:
             message: Optional commit message. If empty, uses a default message.
@@ -60,9 +94,6 @@ def register(mcp: FastMCP):
 
             # List changed files
             changed_files = stdout.split("\n")
-            changes_summary = f"Found {len(changed_files)} changed file(s):\n"
-            for f in changed_files:
-                changes_summary += f"  {f}\n"
 
             # Ensure remote exists
             rc, stdout, stderr = _run_git(["remote", "get-url", "origin"], CASES_DIR)
@@ -103,10 +134,38 @@ def register(mcp: FastMCP):
                     return f"Error: Merge conflict during sync. Please resolve manually.\n{stderr}"
                 sync_message = f"Synced with remote ({count.strip()} new commit(s) from others).\n"
 
-            # Step 4: Stage all changes
-            rc, stdout, stderr = _run_git(["add", "-A"], CASES_DIR)
-            if rc != 0:
-                return f"Error staging files: {stderr}"
+            # Step 4: Stage only case-related files (minimal commit)
+            allowed_files = []
+            skipped_files = []
+            for f in changed_files:
+                f = f.strip()
+                if not f:
+                    continue
+                # git status --porcelain 格式: "XY filename"
+                parts = f.split(None, 1)
+                if len(parts) < 2:
+                    continue
+                filename = parts[1]
+                if _is_allowed_file(filename):
+                    allowed_files.append(filename)
+                else:
+                    skipped_files.append(filename)
+
+            if not allowed_files:
+                return f"No case-related files to commit.\nChanged files (skipped):\n" + "\n".join(f"  - {f}" for f in skipped_files)
+
+            for f in allowed_files:
+                rc, stdout, stderr = _run_git(["add", f], CASES_DIR)
+                if rc != 0:
+                    return f"Error staging file {f}: {stderr}"
+
+            changes_summary = f"Staged {len(allowed_files)} case file(s):\n"
+            for f in allowed_files:
+                changes_summary += f"  + {f}\n"
+            if skipped_files:
+                changes_summary += f"Skipped {len(skipped_files)} non-case file(s):\n"
+                for f in skipped_files:
+                    changes_summary += f"  - {f}\n"
 
             # Step 5: Commit
             if not message:

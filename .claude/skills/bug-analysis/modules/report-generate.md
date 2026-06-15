@@ -71,6 +71,7 @@
 - **插入曲线图** — 在「链路质量曲线图」章节使用 `![描述](文件名)` 嵌入 PNG 图片
   - `{ISSUE_KEY}_link_quality.png` — 链路质量四象限图
   - `{ISSUE_KEY}_kernel_metrics.png` — Kernel Metrics 图
+  - `{ISSUE_KEY}_timeline.png` — 连接状态时间轴图（从 main_log 生成）
   - 图片文件必须与报告文件保存在同一目录
 
 ### 步骤 3: 保存报告
@@ -100,3 +101,4 @@ python scripts/feishu_import_docx.py --file <报告路径> --title "<标题>"
 3. **飞书推送必须执行**
 4. **日志完整性必须作为报告第一个章节呈现** — 按 checklist 格式列出 4 类日志状态，缺失日志注明对分析的影响
 5. **曲线图必须插入报告** — 有 kernel log 时，生成的 `{ISSUE_KEY}_link_quality.png` 和 `{ISSUE_KEY}_kernel_metrics.png` 必须以 `![]()` 语法嵌入报告正文，图片与报告同目录
+6. **连接状态时间轴必须插入报告** — 有 main_log 时，生成的 `{ISSUE_KEY}_timeline.png` 必须以 `![]()` 语法嵌入报告正文

@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Parse kernel log for kalPerMonUpdate/halDumpMsduReportStats and plot graphs."""
+"""Parse kernel log for kalPerMonUpdate/halDumpMsduReportStats and plot graphs.
+Supports multi-file merge into a single chart.
+
+Usage:
+  # Single file
+  python scripts/plot_kernel_metrics.py <kernel_log_file>
+
+  # Multi-file merge
+  python scripts/plot_kernel_metrics.py file1.localtime file2.localtime -o output/ -f combined.png
+
+  # As module
+  from scripts.plot_kernel_metrics import plot_from_file, plot_from_files
+"""
 
 import re
 import sys
@@ -193,13 +205,73 @@ def plot_from_file(file_path, output_dir=None, save_filename="kernel_metrics.png
         return None
 
 
+def plot_from_files(file_paths, output_dir=None, save_filename="kernel_metrics.png"):
+    """Multi-file merge interface: parse multiple files → merge → plot on single chart."""
+    all_tput = []
+    all_delay = []
+    valid_files = []
+
+    for fp in file_paths:
+        if not os.path.exists(fp):
+            print(f"File not found, skipping: {fp}")
+            continue
+        print(f"\n{'='*60}")
+        print(f"Parsing: {os.path.basename(fp)}")
+        print(f"{'='*60}")
+        tput_data, delay_data = parse_kernel_log(fp)
+        print(f"Found {len(tput_data)} kalPerMonUpdate, {len(delay_data)} halDumpMsduReportStats")
+        all_tput.extend(tput_data)
+        all_delay.extend(delay_data)
+        valid_files.append(fp)
+
+    if not all_tput and not all_delay:
+        print("No matching data found in any file.")
+        return None
+
+    # Sort by time
+    all_tput.sort(key=lambda x: x[0])
+    all_delay.sort(key=lambda x: x[0])
+
+    if output_dir is None:
+        output_dir = os.path.dirname(os.path.abspath(valid_files[0]))
+    os.makedirs(output_dir, exist_ok=True)
+
+    print(f"\n{'='*60}")
+    print(f"Merged {len(valid_files)} files: {len(all_tput)} tput, {len(all_delay)} delay entries")
+    print(f"{'='*60}")
+    print_summary(all_tput, all_delay)
+    plot_graphs(all_tput, all_delay, output_dir, save_filename)
+    return os.path.join(output_dir, save_filename)
+
+
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print(f"Usage: python {sys.argv[0]} <kernel_log_file> [output_dir] [save_filename]")
-        print(f"Example: python {sys.argv[0]} kernel_log.localtime output/ ISSUE-123_kernel_metrics.png")
+    args = sys.argv[1:]
+    if not args:
+        print(f"Usage: python {sys.argv[0]} <file1.localtime> [file2.localtime ...] [-o output_dir] [-f save_filename]")
+        print(f"Example: python {sys.argv[0]} kernel_1.localtime kernel_2.localtime -o output/ -f combined.png")
         sys.exit(1)
 
-    log_file = sys.argv[1]
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else None
-    save_filename = sys.argv[3] if len(sys.argv) > 3 else "kernel_metrics.png"
-    plot_from_file(log_file, output_dir, save_filename)
+    # Parse arguments
+    file_paths = []
+    output_dir = None
+    save_filename = "kernel_metrics.png"
+    i = 0
+    while i < len(args):
+        if args[i] == "-o" and i + 1 < len(args):
+            output_dir = args[i + 1]
+            i += 2
+        elif args[i] == "-f" and i + 1 < len(args):
+            save_filename = args[i + 1]
+            i += 2
+        else:
+            file_paths.append(args[i])
+            i += 1
+
+    if not file_paths:
+        print("Error: No files specified.")
+        sys.exit(1)
+
+    if len(file_paths) == 1:
+        plot_from_file(file_paths[0], output_dir, save_filename)
+    else:
+        plot_from_files(file_paths, output_dir, save_filename)

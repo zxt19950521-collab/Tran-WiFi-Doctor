@@ -63,6 +63,9 @@
 ### Kernel Metrics（LQ / Throughput / TX Delay PER）
 ![Kernel Metrics]({ISSUE_KEY}_kernel_metrics.png)
 
+### 连接状态时间轴（wlan / P2P / SoftAP）
+![连接状态时间轴]({ISSUE_KEY}_timeline.png)
+
 ---
 
 ## 【流程总结】
