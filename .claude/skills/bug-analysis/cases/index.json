@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-12",
+  "last_updated": "2026-06-16",
   "cases": [
     {
       "id": "CASE-001",
@@ -168,6 +168,18 @@
       "file_path": "cases/disconnect/CASE-014_TOS163-35926_游戏大流量双频误漫游WRONG_KEY断网.md",
       "source": "TOS163-35926",
       "created_at": "2026-06-12",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-015",
+      "title": "上行TX发送失效叠加2.4G ch11同频争用导致已连接但无法上网（TX_ERR漫游全失败，WiFi未断开）",
+      "category": "performance",
+      "tags": ["已连接无法上网", "connected but not working", "上行链路失效", "TX path异常", "ACK fail主导", "RTS fail累加", "失败率高", "重传率高", "速率坍塌", "TX_ERR漫游", "漫游全失败reason1", "无更优AP困住", "ch11同频争用", "信道非空闲", "IdleTime低", "MdrdyCnt高", "CU高", "PER阵发打满", "DNS解析失败", "WiFi未断开", "重启整机才恢复", "2.4G", "MTK driver"],
+      "symptom": "WiFi已连接但无法上网(DNS失败)，RSSI中等(-57~-73)，PER全程阵发打满，重启手机后恢复；WiFi全程未断开",
+      "root_cause": "上行发送链路失效(ACK fail占82%/TX_ERR漫游12次全失败)为主因，叠加2.4G ch11同频争用(IdleTime中位885/MdrdyCnt最高213/CU达40%)为加重因素；WiFi自身重连无法救回，需手动重启整机",
+      "file_path": "cases/performance/CASE-015_OS162-41328_上行TX失效叠加ch11同频争用导致已连接无法上网.md",
+      "source": "OS162-41328",
+      "created_at": "2026-06-16",
       "match_count": 0
     }
   ],

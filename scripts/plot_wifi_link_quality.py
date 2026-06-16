@@ -123,11 +123,14 @@ class ConnectionSession:
         self.role = role  # 'GO', 'client', or ''
         self.extra = extra  # disconnect reason, etc.
         self.end_reason = ""
+        self.channel_override = ""  # 当 freq 缺失时，由 kernel 推断的信道(如 "2.4G ch11")
 
     @property
     def channel(self):
         if self.freq:
             return freq_to_channel(self.freq)
+        if self.channel_override:
+            return self.channel_override
         return ""
 
     @property
@@ -489,12 +492,16 @@ _SMART_NET_RE = re.compile(
 _SMART_TS_RE = re.compile(r'^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)')
 
 
-def extract_smart_assistant_sta(file_path, gap_sec=20.0):
+def extract_smart_assistant_sta(file_path, disconnect_times=None):
     """从 main_log 的 TranWifiSmartAssistantController 周期监控提取 STA 连接段。
 
     该 tag 在 STA 已连接时周期性打印 `mCurrentNetwork :<id> SSID :"<ssid>"`，
     比用 RSSI 笼统推断更准确(能给出当前实际连接的 SSID，并区分换网)。
-    连续同 SSID 样本(间隔 <= gap_sec)聚为一段；SSID 变化或间隔过大则分段。
+
+    分段规则：只有在 **SSID 变化** 或两相邻样本之间存在 **真实断连事件**
+    (wpa_supplicant CTRL-EVENT-DISCONNECTED，由 disconnect_times 传入) 时才分段。
+    单纯的打印间隔(SmartAssistant 在故障/漫游期间停止打印)**不分段**，
+    避免把一次连续连接误画成多段。
     返回 list[ConnectionSession]（interface='wlan'）。
     """
     encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
@@ -527,21 +534,71 @@ def extract_smart_assistant_sta(file_path, gap_sec=20.0):
         samples.append((ts, net_id, ssid))
 
     samples.sort(key=lambda x: x[0])
+    disc = sorted(disconnect_times or [])
+
+    def disconnect_between(t1, t2):
+        """t1, t2 之间是否存在真实断连事件。"""
+        return any(t1 < d <= t2 for d in disc)
+
     sessions = []
     cur = None
     last_ts = None
+    last_ssid = None
     for ts, net_id, ssid in samples:
-        same = (cur is not None and cur.ssid == ssid
-                and last_ts is not None
-                and (ts - last_ts).total_seconds() <= gap_sec)
-        if same:
+        # 仅在 SSID 变化或两样本间发生过真实断连时，才开新段
+        new_seg = (
+            cur is None
+            or ssid != last_ssid
+            or (last_ts is not None and disconnect_between(last_ts, ts))
+        )
+        if not new_seg:
             cur.end_time = ts
         else:
             cur = ConnectionSession('wlan', ts, ssid=ssid, extra='SmartAssistant')
             cur.end_time = ts
             sessions.append(cur)
         last_ts = ts
+        last_ssid = ssid
     return sessions
+
+
+_DISCO_TS_RE = re.compile(r'^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)')
+_DISCO_RE = re.compile(
+    r'wpa_supplicant.*?(\w+):\s+CTRL-EVENT-DISCONNECTED\s+bssid=[0-9a-fA-F:]+\s+reason='
+)
+
+
+def extract_disconnect_times(file_path):
+    """提取 wpa_supplicant 在 STA(非 p2p) 接口上的真实断连时间点。
+
+    用作 SmartAssistant 连接段的切分依据：只有发生过这些断连，连接段才分开。
+    返回 list[datetime]。
+    """
+    encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
+    lines = []
+    for enc in encodings:
+        try:
+            with open(file_path, 'r', encoding=enc, errors='ignore') as f:
+                lines = f.readlines()
+            break
+        except UnicodeDecodeError:
+            continue
+    times = []
+    for line in lines:
+        if 'CTRL-EVENT-DISCONNECTED' not in line:
+            continue
+        m = _DISCO_RE.search(line)
+        if not m:
+            continue
+        if is_p2p_iface(m.group(1)):
+            continue
+        tm = _DISCO_TS_RE.match(line)
+        if not tm:
+            continue
+        ts = parse_connection_time(tm.group(1))
+        if ts is not None:
+            times.append(ts)
+    return times
 
 
 # kernel 漫游/选网日志：apsSearchBssDescByScore: Selected <mac> ... Band[..] ... when find <SSID>
@@ -594,6 +651,62 @@ def fill_bssid_from_kernel(sessions, kernel_files):
             filled.append(s.ssid)
     if filled:
         print(f"  从 kernel 选网日志补 BSSID：{', '.join(sorted(set(filled)))}")
+
+
+def extract_current_channel_from_kernel(kernel_files):
+    """从 kernel ScanDone 推断 STA 当前连接信道。
+
+    MTK 在 STA 已连接时会周期性对【当前连接信道】做单信道定向扫描，
+    对应 scnFsmDumpScanDoneInfo 的 `Detected_Channel_Num = 1` + `Channel: <ch>`。
+    取这些单信道扫描信道的众数作为当前连接信道，返回 "2.4G chN"/"5G chN" 或 ""。
+    """
+    from collections import Counter
+    singles = []
+    for kf in kernel_files or []:
+        if not kf or not os.path.exists(kf):
+            continue
+        for enc in ('utf-8', 'gbk', 'latin-1'):
+            try:
+                with open(kf, 'r', encoding=enc, errors='ignore') as f:
+                    pending = False
+                    for line in f:
+                        if 'scnFsmDumpScanDoneInfo' not in line:
+                            continue
+                        if 'Detected_Channel_Num = 1' in line:
+                            pending = True
+                        elif pending and 'Channel  :' in line:
+                            nums = re.findall(
+                                r'\b\d+\b', line.split('Channel  :', 1)[1])
+                            if nums:
+                                singles.append(int(nums[0]))
+                            pending = False
+                break
+            except UnicodeDecodeError:
+                continue
+    if not singles:
+        return ""
+    ch = Counter(singles).most_common(1)[0][0]
+    if ch <= 14:
+        return f"2.4G ch{ch}"
+    if ch <= 196:
+        return f"5G ch{ch}"
+    return f"ch{ch}"
+
+
+def fill_channel_from_kernel(sessions, kernel_files):
+    """对缺少 freq/channel 的 wlan 会话，用 kernel 推断的当前连接信道补全。"""
+    if not sessions:
+        return
+    ch = extract_current_channel_from_kernel(kernel_files)
+    if not ch:
+        return
+    filled = False
+    for s in sessions.get('wlan', []):
+        if not s.freq and not s.channel_override:
+            s.channel_override = ch
+            filled = True
+    if filled:
+        print(f"  从 kernel 单信道扫描推断当前连接信道：{ch}")
 
 
 # 连接失败事件：关联被拒 / 认证被拒 / 4-way 握手失败 / 网络被临时禁用
@@ -666,7 +779,9 @@ def load_connection_sessions(main_log_paths):
             continue
         print(f"提取连接状态：{os.path.basename(mp)}")
         sess_list.append(extract_connection_sessions(mp))
-        sa_sessions.extend(extract_smart_assistant_sta(mp))
+        disc_times = extract_disconnect_times(mp)
+        sa_sessions.extend(
+            extract_smart_assistant_sta(mp, disconnect_times=disc_times))
     if not sess_list:
         return None
     merged = merge_connection_sessions(sess_list)
@@ -1622,6 +1737,7 @@ def _resolve_offset_and_shift(data, all_times, ref_file, main_log_paths,
         data, all_times = shift_data_times(data, all_times, tz_offset_hours)
         conn = load_connection_sessions(main_log_paths)
         fill_bssid_from_kernel(conn, kernel_files)
+        fill_channel_from_kernel(conn, kernel_files)
         fail_events = load_fail_events(main_log_paths)
         offset = tz_offset_hours
     else:
