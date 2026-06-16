@@ -9,7 +9,7 @@ WiFi Link Quality 绘图脚本
 - Tput: kalPerMonUpdate 中的吞吐量
 - Tx(rate): wlanLinkQualityMonitor 中的发送 PHY Rate
 - Rx(rate): wlanLinkQualityMonitor 中的接收 PHY Rate
-- rssi: mtk_cfg80211_get_station 中的 rssi 或 MovAvg_rssi
+- rssi: mtk_cfg80211_get_station 中的 MovAvg_rssi（周期约 3s）；勿用 vendor_event_rssi_beyond_range 的稀疏阈值事件
 - PER: wlanLinkQualityMonitor 或 mtk_cfg80211_get_station 中的 PER
 - 连接状态: main_log 中的 wlan/P2P/softap 连接事件
 
@@ -147,8 +147,7 @@ class ConnectionSession:
         if self.channel:
             parts.append(self.channel)
         if self.bssid:
-            mac_short = self.bssid[-5:] if len(self.bssid) >= 5 else self.bssid
-            parts.append(mac_short)
+            parts.append(format_bssid_display(self.bssid))
         if self.role:
             parts.append(self.role)
         return " | ".join(parts)
@@ -492,18 +491,8 @@ _SMART_NET_RE = re.compile(
 _SMART_TS_RE = re.compile(r'^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)')
 
 
-def extract_smart_assistant_sta(file_path, disconnect_times=None):
-    """从 main_log 的 TranWifiSmartAssistantController 周期监控提取 STA 连接段。
-
-    该 tag 在 STA 已连接时周期性打印 `mCurrentNetwork :<id> SSID :"<ssid>"`，
-    比用 RSSI 笼统推断更准确(能给出当前实际连接的 SSID，并区分换网)。
-
-    分段规则：只有在 **SSID 变化** 或两相邻样本之间存在 **真实断连事件**
-    (wpa_supplicant CTRL-EVENT-DISCONNECTED，由 disconnect_times 传入) 时才分段。
-    单纯的打印间隔(SmartAssistant 在故障/漫游期间停止打印)**不分段**，
-    避免把一次连续连接误画成多段。
-    返回 list[ConnectionSession]（interface='wlan'）。
-    """
+def extract_smart_assistant_samples(file_path):
+    """从单个 main_log 提取 SmartAssistant STA 采样 (ts, net_id, ssid)。"""
     encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
     lines = []
     for enc in encodings:
@@ -513,10 +502,7 @@ def extract_smart_assistant_sta(file_path, disconnect_times=None):
             break
         except UnicodeDecodeError:
             continue
-    if not lines:
-        return []
-
-    samples = []  # (ts, net_id, ssid)
+    samples = []
     for line in lines:
         m = _SMART_NET_RE.search(line)
         if not m:
@@ -532,12 +518,17 @@ def extract_smart_assistant_sta(file_path, disconnect_times=None):
         if net_id == '-1' or not ssid:
             continue
         samples.append((ts, net_id, ssid))
+    return samples
 
-    samples.sort(key=lambda x: x[0])
+
+def build_smart_assistant_sessions(samples, disconnect_times=None):
+    """将 SmartAssistant 采样序列切成连接段（全局一次分段，避免多 main_log 文件边界误切）。"""
+    if not samples:
+        return []
+    samples = sorted(samples, key=lambda x: x[0])
     disc = sorted(disconnect_times or [])
 
     def disconnect_between(t1, t2):
-        """t1, t2 之间是否存在真实断连事件。"""
         return any(t1 < d <= t2 for d in disc)
 
     sessions = []
@@ -545,7 +536,6 @@ def extract_smart_assistant_sta(file_path, disconnect_times=None):
     last_ts = None
     last_ssid = None
     for ts, net_id, ssid in samples:
-        # 仅在 SSID 变化或两样本间发生过真实断连时，才开新段
         new_seg = (
             cur is None
             or ssid != last_ssid
@@ -560,6 +550,46 @@ def extract_smart_assistant_sta(file_path, disconnect_times=None):
         last_ts = ts
         last_ssid = ssid
     return sessions
+
+
+def extract_smart_assistant_sta(file_path, disconnect_times=None):
+    """从单个 main_log 提取 SmartAssistant STA 连接段（兼容旧接口）。"""
+    return build_smart_assistant_sessions(
+        extract_smart_assistant_samples(file_path), disconnect_times)
+
+
+def extract_smart_assistant_sta_all(main_log_paths):
+    """从多个 main_log 合并采样后统一分段，避免每个文件各起一段。"""
+    paths = _dedupe_paths(main_log_paths)
+    all_samples = []
+    all_disc = []
+    for mp in paths:
+        if not os.path.exists(mp):
+            print(f"main_log 不存在，跳过：{mp}")
+            continue
+        print(f"提取连接状态：{os.path.basename(mp)}")
+        all_samples.extend(extract_smart_assistant_samples(mp))
+        all_disc.extend(extract_disconnect_times(mp))
+    return build_smart_assistant_sessions(all_samples, all_disc)
+
+
+def _dedupe_paths(paths):
+    """去重 main_log/kernel 路径：先按绝对路径，再按文件名保留最短路径(避免嵌套解压重复)。"""
+    seen_abs = set()
+    by_base = {}
+    base_order = []
+    for p in paths or []:
+        ap = os.path.abspath(p)
+        if ap in seen_abs:
+            continue
+        seen_abs.add(ap)
+        base = os.path.basename(p)
+        if base not in by_base:
+            by_base[base] = p
+            base_order.append(base)
+        elif len(ap) < len(os.path.abspath(by_base[base])):
+            by_base[base] = p
+    return [by_base[b] for b in base_order]
 
 
 _DISCO_TS_RE = re.compile(r'^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)')
@@ -606,6 +636,17 @@ _KERNEL_SELECTED_RE = re.compile(
     r'apsSearchBssDescByScore.*?Selected\s+([0-9a-fA-F:\*]{17})\s*,'
     r'.*?Band\[([^\]]+)\].*?when find\s+([^,\r\n]+)'
 )
+_KERNEL_STA_MAC_RE = re.compile(
+    r'mtk_cfg80211_get_station:.*?mac:\[([0-9a-fA-F:\*]+)\]'
+)
+_MAIN_BSSID_RE = re.compile(r'BSSID=([0-9a-fA-F:\*]+)')
+
+
+def format_bssid_display(bssid):
+    """连接条标签用的 BSSID 展示（保留日志中的打码形式）。"""
+    if not bssid:
+        return ""
+    return bssid.strip()
 
 
 def extract_bssid_map_from_kernel(kernel_files):
@@ -637,20 +678,92 @@ def extract_bssid_map_from_kernel(kernel_files):
     return mapping
 
 
+def extract_connected_bssid_from_kernel(kernel_files):
+    """从 mtk_cfg80211_get_station 提取当前连接 AP 的 BSSID（取众数）。
+
+    抓 log 前已建立连接、无 apsSearchBssDescByScore 选网日志时，这是主要来源。
+    """
+    from collections import Counter
+    macs = []
+    for kf in kernel_files or []:
+        if not kf or not os.path.exists(kf):
+            continue
+        for enc in ('utf-8', 'gbk', 'latin-1'):
+            try:
+                with open(kf, 'r', encoding=enc, errors='ignore') as f:
+                    for line in f:
+                        if 'mtk_cfg80211_get_station' not in line:
+                            continue
+                        m = _KERNEL_STA_MAC_RE.search(line)
+                        if m:
+                            macs.append(m.group(1))
+                break
+            except UnicodeDecodeError:
+                continue
+    if not macs:
+        return ""
+    return Counter(macs).most_common(1)[0][0]
+
+
+def extract_bssid_from_main_log(main_log_paths):
+    """从 main_log 的 WifiHAL 等 BSSID= 行提取当前连接 BSSID（取众数）。"""
+    from collections import Counter
+    macs = []
+    for mp in main_log_paths or []:
+        if not mp or not os.path.exists(mp):
+            continue
+        for enc in ('utf-8', 'gbk', 'latin-1'):
+            try:
+                with open(mp, 'r', encoding=enc, errors='ignore') as f:
+                    for line in f:
+                        m = _MAIN_BSSID_RE.search(line)
+                        if m:
+                            macs.append(m.group(1))
+                break
+            except UnicodeDecodeError:
+                continue
+    if not macs:
+        return ""
+    return Counter(macs).most_common(1)[0][0]
+
+
 def fill_bssid_from_kernel(sessions, kernel_files):
-    """对缺少 BSSID 的 wlan 会话，用 kernel 选网日志的 SSID->BSSID 映射补全。"""
+    """对缺少 BSSID 的 wlan 会话补全：选网日志 SSID 映射 → 连接态 station MAC。"""
     if not sessions:
         return
     mapping = extract_bssid_map_from_kernel(kernel_files)
-    if not mapping:
-        return
-    filled = []
+    connected = extract_connected_bssid_from_kernel(kernel_files)
+    filled_ssid = []
+    filled_sta = 0
     for s in sessions.get('wlan', []):
-        if s.ssid and not s.bssid and s.ssid in mapping:
+        if s.bssid:
+            continue
+        if s.ssid and s.ssid in mapping:
             s.bssid = mapping[s.ssid][0]
-            filled.append(s.ssid)
+            filled_ssid.append(s.ssid)
+        elif connected:
+            s.bssid = connected
+            filled_sta += 1
+    if filled_ssid:
+        print(f"  从 kernel 选网日志补 BSSID：{', '.join(sorted(set(filled_ssid)))}")
+    if filled_sta:
+        print(f"  从 kernel station 日志补 BSSID：{connected}（{filled_sta} 段）")
+
+
+def fill_bssid_from_main_log(sessions, main_log_paths):
+    """对仍缺 BSSID 的 wlan 会话，用 main_log 中 WifiHAL BSSID= 补全。"""
+    if not sessions:
+        return
+    connected = extract_bssid_from_main_log(main_log_paths)
+    if not connected:
+        return
+    filled = 0
+    for s in sessions.get('wlan', []):
+        if not s.bssid:
+            s.bssid = connected
+            filled += 1
     if filled:
-        print(f"  从 kernel 选网日志补 BSSID：{', '.join(sorted(set(filled)))}")
+        print(f"  从 main_log 补 BSSID：{connected}（{filled} 段）")
 
 
 def extract_current_channel_from_kernel(kernel_files):
@@ -772,20 +885,17 @@ def load_connection_sessions(main_log_paths):
     wpa_supplicant 的 wlan 会话仅保留与之不重叠的部分(如失败的关联尝试)。
     """
     sess_list = []
-    sa_sessions = []
+    main_log_paths = _dedupe_paths(main_log_paths)
     for mp in main_log_paths:
         if not os.path.exists(mp):
             print(f"main_log 不存在，跳过：{mp}")
             continue
-        print(f"提取连接状态：{os.path.basename(mp)}")
         sess_list.append(extract_connection_sessions(mp))
-        disc_times = extract_disconnect_times(mp)
-        sa_sessions.extend(
-            extract_smart_assistant_sta(mp, disconnect_times=disc_times))
     if not sess_list:
         return None
     merged = merge_connection_sessions(sess_list)
 
+    sa_sessions = extract_smart_assistant_sta_all(main_log_paths)
     if sa_sessions:
         sa_sessions.sort(key=lambda s: s.start_time)
         # SmartAssistant 只有 SSID，用与之重叠的 wpa 会话补 BSSID/信道(freq)
@@ -818,7 +928,7 @@ def _session_label_lines(s):
     if s.channel:
         parts.append(s.channel)
     if s.bssid:
-        parts.append(s.bssid[-5:] if len(s.bssid) >= 5 else s.bssid)
+        parts.append(format_bssid_display(s.bssid))
     if s.role:
         parts.append(s.role)
     lines = [line1]
@@ -1334,7 +1444,9 @@ def extract_data(file_path):
     """
     从 kernel log 提取 Tput/Tx/Rx/rssi/PER 数据。
     时间提取：每行前19字符（格式：MM-DD HH:MM:SS.mmm）
-    rssi 优先级：, rssi= → MovAvg_rssi=
+    rssi 优先级（仅 mtk_cfg80211_get_station 行）：
+      MovAvg_rssi= → Raw_rssi BSSDesc 首值
+    不使用 mtk_cfg80211_vendor_event_rssi_beyond_range 的 , rssi=（稀疏阈值事件，与连续 RSSI 对不上）
     """
     data = {
         "Tput:": ([], []),
@@ -1346,8 +1458,8 @@ def extract_data(file_path):
     all_valid_times = []
 
     rssi_keywords = [
-        (", rssi=", re.compile(r',\s*rssi=(-?\d+\.?\d*)[,)]')),
-        ("MovAvg_rssi=", re.compile(r'MovAvg_rssi=(-?\d+\.?\d*)[,)]'))
+        ("MovAvg_rssi=", re.compile(r'MovAvg_rssi=(-?\d+\.?\d*)[,)]')),
+        ("Raw_rssi BSSDesc", re.compile(r'Raw_rssi=\[BSSDesc\((-?\d+\.?\d*)')),
     ]
     other_pattern_map = {
         "Tput:": re.compile(r'Tput:\s*(\d+\.?\d*)'),
@@ -1395,13 +1507,13 @@ def extract_data(file_path):
                 except ValueError:
                     continue
 
-    # rssi fallback 提取
+    # RSSI：仅从 mtk_cfg80211_get_station 周期采样提取（与 Tx/Rx/PER 同源链路）
     used_keyword = None
     for keyword, pattern in rssi_keywords:
         current_times, current_nums = [], []
         for line in lines:
             line_strip = line.strip()
-            if not line_strip:
+            if not line_strip or 'mtk_cfg80211_get_station' not in line:
                 continue
             time_str = line[:19].strip()
             if len(time_str) < 15:
@@ -1737,6 +1849,7 @@ def _resolve_offset_and_shift(data, all_times, ref_file, main_log_paths,
         data, all_times = shift_data_times(data, all_times, tz_offset_hours)
         conn = load_connection_sessions(main_log_paths)
         fill_bssid_from_kernel(conn, kernel_files)
+        fill_bssid_from_main_log(conn, main_log_paths)
         fill_channel_from_kernel(conn, kernel_files)
         fail_events = load_fail_events(main_log_paths)
         offset = tz_offset_hours
@@ -1753,11 +1866,17 @@ def _resolve_offset_and_shift(data, all_times, ref_file, main_log_paths,
 def plot_from_file(file_path, output_dir=None, save_filename="kernel_log_curves.png",
                    main_log_paths=None, tz_offset_hours=None, show_scan=True):
     """
-    单文件接口：提取数据 + (可选)对齐 main_log 连接状态 + 扫描事件 + 绘图 + 保存
+    单文件接口：提取数据 + 对齐 main_log 连接状态 + 扫描事件 + 绘图 + 保存
+    绘图要求同时提供 kernel log 与 main_log，缺 main_log 返回 None。
     返回保存路径，失败返回 None
     """
     if not os.path.exists(file_path):
         print(f"文件不存在：{file_path}")
+        return None
+
+    if not main_log_paths:
+        print("错误：绘图需要 main_log（请通过 main_log_paths 传入），"
+              "缺少时连接状态只能灰色兜底，已拒绝绘图。")
         return None
 
     data, all_times = extract_data(file_path)
@@ -1810,9 +1929,15 @@ def merge_data(data_list, times_list):
 def plot_from_files(file_paths, output_dir=None, save_filename="kernel_log_curves.png",
                     main_log_paths=None, tz_offset_hours=None, show_scan=True):
     """
-    多文件合并接口：提取多个文件数据 → 合并 → (可选)对齐 main_log + 扫描事件 → 绘制到同一张图
+    多文件合并接口：提取多个文件数据 → 合并 → 对齐 main_log + 扫描事件 → 绘制到同一张图
+    绘图要求同时提供 kernel log 与 main_log，缺 main_log 返回 None。
     返回保存路径，失败返回 None
     """
+    if not main_log_paths:
+        print("错误：绘图需要 main_log（请通过 main_log_paths 传入），"
+              "缺少时连接状态只能灰色兜底，已拒绝绘图。")
+        return None
+
     data_list = []
     times_list = []
     valid_files = []
@@ -1866,14 +1991,15 @@ def plot_from_files(file_paths, output_dir=None, save_filename="kernel_log_curve
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
-        print(f"用法: python {sys.argv[0]} <file1.localtime> [file2.localtime ...] "
-              f"[-m main_log ...] [--tz-offset HOURS] [-o output_dir] [-f save_filename]")
-        print(f"示例: python {sys.argv[0]} kernel_1.localtime -o output/ -f ISSUE-123_link_quality.png")
-        print(f"带连接状态(自动按时区头对齐): python {sys.argv[0]} kernel.localtime -m main_log "
-              f"-o output/ -f ISSUE-123_combined.png")
-        print("说明: -m 指定 main_log 后会插入连接状态子图，并把 kernel(UTC) 时间"
-              "按 .localtime 时区头自动平移到设备本地时间(与 main_log 对齐)；"
+        print(f"用法: python {sys.argv[0]} <kernel.localtime ...> -m <main_log ...> "
+              f"[--tz-offset HOURS] [-o output_dir] [-f save_filename]")
+        print(f"示例: python {sys.argv[0]} kernel.localtime -m main_log "
+              f"-o output/ -f ISSUE-123_link_quality.png")
+        print("说明: 绘图需要同时提供 kernel log(位置参数) 与 main_log(-m)。")
+        print("      -m 指定 main_log 后会解析真实连接会话(带 SSID/换网)并画成彩色连接条，"
+              "并把 kernel(UTC) 时间按 .localtime 时区头自动平移到设备本地时间(与 main_log 对齐)；"
               "可用 --tz-offset 手动指定 kernel 需要 +N 小时。")
+        print("      若仅有 kernel log，连接状态只能用灰色 RSSI 兜底推断，故本脚本要求必须带 main_log。")
         sys.exit(1)
 
     # 解析参数
@@ -1910,10 +2036,26 @@ if __name__ == "__main__":
             i += 1
 
     if not file_paths:
-        print("错误：未指定 kernel log 文件")
+        print("错误：未指定 kernel log 文件（绘图需要 kernel log + main_log）")
         sys.exit(1)
 
-    main_log_paths = main_log_paths or None
+    if not main_log_paths:
+        print("错误：未指定 main_log（绘图需要 kernel log + main_log）")
+        print("      请用 -m/--main-log 指定至少一个 main_log，例如：")
+        print(f"      python {sys.argv[0]} kernel.localtime -m main_log "
+              "-o output/ -f ISSUE-123_link_quality.png")
+        print("      原因：缺少 main_log 时无法解析真实连接会话，连接状态条会退化为"
+              "灰色 RSSI 兜底推断（无 SSID/换网信息）。")
+        sys.exit(1)
+
+    main_log_paths = _dedupe_paths(main_log_paths)
+
+    missing = [p for p in main_log_paths if not os.path.exists(p)]
+    if missing:
+        print("错误：以下 main_log 不存在：")
+        for p in missing:
+            print(f"      {p}")
+        sys.exit(1)
 
     if len(file_paths) == 1:
         plot_from_file(file_paths[0], output_dir, save_filename,
