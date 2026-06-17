@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-16",
+  "last_updated": "2026-06-17",
   "cases": [
     {
       "id": "CASE-001",
@@ -180,6 +180,18 @@
       "file_path": "cases/performance/CASE-015_OS162-41328_上行TX失效叠加ch11同频争用导致已连接无法上网.md",
       "source": "OS162-41328",
       "created_at": "2026-06-16",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-016",
+      "title": "X1102C Miracast投屏VCodec编码器初始化失败导致Source端RTSP TEARDOWN（WiFi/P2P通路正常）",
+      "category": "p2p-connection",
+      "tags": ["Miracast", "WFD", "投屏", "小米盒子", "X1102C", "P2P正常", "RTSP TEARDOWN", "Source主动断开", "MtkWifiDisplaySource", "VCodec", "C2MtkVenc", "setOutputFormat fail", "InitError", "MediaCodec UNKNOWN_ERROR", "非WiFi问题", "Video Codec", "MTK平台"],
+      "symptom": "X1102C投屏小米盒子必现：显示连接成功后又突然断开；P2P/RTSP通路正常但Source因编码器失败主动TEARDOWN",
+      "root_cause": "MTK VCodec c2.mtk.avc.encoder 初始化失败(setOutputFormat fail/Output format nullptr)，无视频帧产出后MtkWifiDisplaySource主动RTSP TEARDOWN",
+      "file_path": "cases/p2p-connection/CASE-016_X1102COS16-184_VCodec初始化失败导致Miracast投屏Source端TEARDOWN.md",
+      "source": "X1102COS16-184",
+      "created_at": "2026-06-17",
       "match_count": 0
     }
   ],
