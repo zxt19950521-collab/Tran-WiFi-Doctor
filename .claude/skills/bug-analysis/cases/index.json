@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-16",
+  "last_updated": "2026-06-18",
   "cases": [
     {
       "id": "CASE-001",
@@ -172,14 +172,38 @@
     },
     {
       "id": "CASE-015",
+      "title": "上行TX发送失效叠加2.4G ch11同频争用导致已连接但无法上网（TX_ERR漫游全失败，WiFi未断开）",
+      "category": "performance",
+      "tags": ["已连接无法上网", "connected but not working", "上行链路失效", "TX path异常", "ACK fail主导", "RTS fail累加", "失败率高", "重传率高", "速率坍塌", "TX_ERR漫游", "漫游全失败reason1", "无更优AP困住", "ch11同频争用", "信道非空闲", "IdleTime低", "MdrdyCnt高", "CU高", "PER阵发打满", "DNS解析失败", "WiFi未断开", "重启整机才恢复", "2.4G", "MTK driver"],
+      "symptom": "WiFi已连接但无法上网(DNS失败)，RSSI中等(-57~-73)，PER全程阵发打满，重启手机后恢复；WiFi全程未断开",
+      "root_cause": "上行发送链路失效(ACK fail占82%/TX_ERR漫游12次全失败)为主因，叠加2.4G ch11同频争用(IdleTime中位885/MdrdyCnt最高213/CU达40%)为加重因素；WiFi自身重连无法救回，需手动重启整机",
+      "file_path": "cases/performance/CASE-015_OS162-41328_上行TX失效叠加ch11同频争用导致已连接无法上网.md",
+      "source": "OS162-41328",
+      "created_at": "2026-06-16",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-016",
+      "title": "X1102C Miracast投屏VCodec编码器初始化失败导致Source端RTSP TEARDOWN（WiFi/P2P通路正常）",
+      "category": "p2p-connection",
+      "tags": ["Miracast", "WFD", "投屏", "小米盒子", "X1102C", "P2P正常", "RTSP TEARDOWN", "Source主动断开", "MtkWifiDisplaySource", "VCodec", "C2MtkVenc", "setOutputFormat fail", "InitError", "MediaCodec UNKNOWN_ERROR", "非WiFi问题", "Video Codec", "MTK平台"],
+      "symptom": "X1102C投屏小米盒子必现：显示连接成功后又突然断开；P2P/RTSP通路正常但Source因编码器失败主动TEARDOWN",
+      "root_cause": "MTK VCodec c2.mtk.avc.encoder 初始化失败(setOutputFormat fail/Output format nullptr)，无视频帧产出后MtkWifiDisplaySource主动RTSP TEARDOWN",
+      "file_path": "cases/p2p-connection/CASE-016_X1102COS16-184_VCodec初始化失败导致Miracast投屏Source端TEARDOWN.md",
+      "source": "X1102COS16-184",
+      "created_at": "2026-06-17",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-017",
       "title": "强WiFi下抖音HEVC硬解超时导致加载卡顿（滑走再回可播）",
       "category": "performance",
       "tags": ["抖音", "aweme", "HEVC", "QC2V4l2Decoder", "解码超时", "音频underrun", "应用层卡顿", "强信号", "无断开", "WifiNetworkCheck正常", "Probe成功", "进度条加载", "滑走再回可播", "高内存", "录屏争用", "Qualcomm", "wcn6450", "X6878", "中国"],
       "symptom": "刷抖音进度条加载卡顿，滑到下一个再滑回可播；WiFi RSSI优、Ping/Probe全成功、无断连",
       "root_cause": "WiFi正常；QC2V4l2Decoder HEVC输出缓冲~10s超时+AudioFlinger underrun，播放管线卡死；抖音~1.8GB内存与录屏加重",
-      "file_path": "cases/performance/CASE-015_X6878OS16-11111_强WiFi下抖音HEVC解码超时导致加载卡顿.md",
+      "file_path": "cases/performance/CASE-017_X6878OS16-11111_强WiFi下抖音HEVC解码超时导致加载卡顿.md",
       "source": "X6878OS16-11111",
-      "created_at": "2026-06-16",
+      "created_at": "2026-06-18",
       "match_count": 0
     }
   ],

@@ -38,7 +38,9 @@
 ## 执行步骤
 
 ### 步骤 1: 提取当前问题特征
-- 从日志中提取 TAG
+- **必须先加载 TAG 知识**：Read `knowledge/docs/wifi-tags-knowledge.md` 或查询 `knowledge/tags.json` 的 `extraction_rules.log_patterns`
+- 按 87 个 TAG 的提取规则逐项匹配日志关键字
+- 记录匹配到的 TAG 列表（带分类）
 - 从描述中提取关键词
 - 生成问题摘要
 

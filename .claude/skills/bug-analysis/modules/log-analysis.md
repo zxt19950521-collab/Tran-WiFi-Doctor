@@ -34,8 +34,11 @@
 
 ## 执行步骤
 
+**前置条件：必须先完成 SKILL.md 步骤 2.5（日志完整性检查 + MTK 时间转换），再进入以下分析步骤。**
+
 ### 步骤 1: 日志预处理
-- MTK kernel_log 时间转换（如适用）
+- 确认步骤 2.5 已完成（日志完整性检查 + MTK 时间转换）
+- 确认使用 `.localtime` 文件分析 kernel log
 - 日志格式标准化
 - 确认可用的日志类型清单
 
@@ -76,6 +79,68 @@
 
 ### 步骤 5: 生成时间线
 按时间顺序整理关键事件，生成时间线。
+
+## 知识文档引用
+
+分析 kernel 日志时，遇到以下关键字需加载对应知识文档：
+
+### MTK 驱动日志知识
+
+| kernel 日志关键字 | 知识文档 | 用途 |
+|------------------|----------|------|
+| `wlanLinkQualityMonitor` | `knowledge/docs/mtk-link-quality-monitor.md` | 解析 Tx/Rx/PER/Congestion 各字段，计算指标，匹配场景模板 |
+| `scnFsmDumpScanDoneInfo` / `IdleTime` / `MdrdyCnt` / `BAndPCnt` / `CU Value` | `knowledge/docs/mtk-scan-done-info.md` | 解析扫描结果：信道空闲时间、帧计数、AP 密度、Channel Utilization，用于 ACS/P2P 选信道/拥塞排查 |
+| `wpa_supplicant` EAPOL | `knowledge/docs/eapol-handshake.md`（待建） | 4 次握手流程分析 |
+| `roamingFsm` / `apsSearchBssDesc` | `knowledge/docs/mtk-roaming.md`（待建） | 漫游触发原因与流程分析 |
+
+### WiFi 通用分析知识（同步自 wifi-common）
+
+| 知识文档 | 用途 | 使用时机 |
+|----------|------|----------|
+| `knowledge/docs/wifi-tags-knowledge.md` | 8 大类 30+ TAG 定义、提取规则、关联分析、问题链条 | 分析任何 WiFi 问题时，用于 TAG 提取与匹配 |
+| `knowledge/docs/wifi-analysis-guide.md` | 按问题类型的详细分析步骤（P2P/DHCP/Auth/DNS/断连/性能） | 确定问题类型后，按指南逐步分析 |
+| `knowledge/docs/wifi-quick-reference.md` | 常见日志关键字速查、断开原因代码速查 | 快速定位日志关键字含义 |
+
+### TAG 知识库
+
+| 文件 | 用途 |
+|------|------|
+| `knowledge/tags.json` | 87 个 TAG 定义 + 提取规则 + 7 条问题链条，用于案例匹配与 TAG 关联分析 |
+
+### 绘图工具
+
+| 工具 | 路径 | 用途 |
+|------|------|------|
+| WiFi Link Quality 绘图 | `scripts/plot_wifi_link_quality.py` | 从 kernel log 提取 Tput/Tx/Rx/RSSI/PER 绘制四象限曲线图，支持 `-m` 参数添加连接状态子图 |
+| Kernel Metrics 绘图 | `scripts/plot_kernel_metrics.py` | 从 kernel log 提取 kalPerMonUpdate 吞吐量和 TX 延迟曲线 |
+| 连接状态时间轴 | `scripts/plot_connection_timeline.py` | 从 main log 提取 wlan/P2P/softap 连接状态，绘制甘特图式时间轴（可单独使用） |
+
+**多文件合并**：多个 kernel log 传入同一命令，自动按时间排序合并到一张图。
+
+**调用方式**：
+```bash
+# 单文件（仅 link quality）
+python scripts/plot_wifi_link_quality.py <kernel_log_file> -o <output_dir> -f <filename.png>
+
+# 多文件合并
+python scripts/plot_wifi_link_quality.py file1.localtime file2.localtime -o <output_dir> -f <filename.png>
+
+# 带连接状态子图（推荐：一张图包含所有信息，时间对齐，线宽一致）
+python scripts/plot_wifi_link_quality.py kernel.localtime -m main_log -o <output_dir> -f <filename.png>
+python scripts/plot_wifi_link_quality.py kernel_1.localtime kernel_2.localtime -m main_log_1 main_log_2 -o <output_dir> -f <filename.png>
+
+# 连接状态时间轴（单独生成）
+python scripts/plot_connection_timeline.py <main_log_file> -o <output_dir> -f <filename.png>
+python scripts/plot_connection_timeline.py main_log_1 main_log_2 -o <output_dir> -f <filename.png>
+```
+
+**加载方式**：
+1. 分析 kernel 日志遇到 MTK 关键字时，读取对应 MTK 知识文档做量化分析
+2. 提取 TAG 时，读取 `wifi-tags-knowledge.md` 或查询 `tags.json` 的提取规则
+3. 确定问题类型后，读取 `wifi-analysis-guide.md` 按步骤分析
+4. 遇到不确定关键字时，读取 `wifi-quick-reference.md`
+5. **分析完成后，调用 `plot_wifi_link_quality.py` 生成曲线图**
+6. **有 main_log 时，使用 `-m` 参数将连接状态图合并到 link quality 图中（推荐）**
 
 ## 分析策略
 
