@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-03",
+  "last_updated": "2026-06-16",
   "cases": [
     {
       "id": "CASE-001",
@@ -48,6 +48,138 @@
       "file_path": "cases/p2p-connection/CASE-004_K16SFA-375_PC长待机后P2P连接Auth无回复失败.md",
       "source": "K16SFA-375",
       "created_at": "2026-06-03",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-005",
+      "title": "AirTransfer与NearbySharing P2P资源冲突导致NFC碰传失败",
+      "category": "p2p-connection",
+      "tags": ["P2P_RESOURCE_CONFLICT", "P2P_BUSY", "P2P_GROUP_FORMATION_FAILURE", "NFC_CONNECT_TIMEOUT", "NearbySharing"],
+      "symptom": "NFC碰传连接失败，必现，错误码105",
+      "root_cause": "AirTransfer移除NearbySharing的GC连接后创建Group，NearbySharing自动重连产生竞态导致BUSY",
+      "file_path": "cases/p2p-connection/CASE-005_OS162-40628_AirTransfer与NearbySharing_P2P资源冲突.md",
+      "source": "OS162-40628",
+      "created_at": "2026-06-04",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-006",
+      "title": "弱信号+单AP漫游失败导致游戏卡顿（WiFi未断开）",
+      "category": "performance",
+      "tags": ["RSSI劣化", "PER高", "物理速率坍塌", "单AP漫游失败", "漫游全频扫描抖动", "2.4G单频", "无断开", "游戏卡顿", "MTK driver"],
+      "symptom": "WiFi未断开但游戏偶现卡顿，RSSI劣化PER高达93%，物理速率坍塌到65/10Mbps",
+      "root_cause": "弱信号+单AP无可漫游目标，PER飙升速率坍塌叠加反复无目标漫游全频扫描，导致低延迟游戏卡顿",
+      "file_path": "cases/performance/CASE-006_LK7OS163-2073_弱信号PER高单AP漫游失败导致游戏卡顿.md",
+      "source": "LK7OS163-2073",
+      "created_at": "2026-06-05",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-007",
+      "title": "同步wifi.cfg误删RegP2pMode导致手机GC无法发起P2P关联",
+      "category": "p2p-connection",
+      "tags": ["P2P-GROUP-FORMATION-FAILURE", "Association request to the driver failed", "GC驱动拒绝关联", "未发Auth", "RegP2pMode删除", "wifi.cfg同步回归", "MTK gen4m", "极速互传", "PC GO", "CR1532957/TOS163-33727"],
+      "symptom": "手机GC连PC GO失败，Association request to the driver failed，authSendAuthFrame=0，约10秒P2P组形成失败",
+      "root_cause": "CR 1532957同步v版本wifi.cfg时误删RegP2pMode 6，GC失去P2P关联能力，驱动同步拒绝connect（与信道、STA并发无关）",
+      "file_path": "cases/p2p-connection/CASE-007_PC-P2P_RegP2pMode删除导致GC无法发起关联.md",
+      "source": "APLog_2026_0605_095756 + CR1532957",
+      "created_at": "2026-06-05",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-008",
+      "title": "强信号下空口介质争用/同频干扰导致Roblox游戏加载极慢（WiFi未断开）",
+      "category": "performance",
+      "tags": ["PER间歇突刺", "ACK fail持续累加", "RTS fail", "Rx error高", "介质争用", "同频干扰", "信道拥塞", "吞吐突发-空闲波动", "强信号正常速率", "游戏加载慢", "无断开", "MTK driver"],
+      "symptom": "强信号(-30dBm)、协商速率正常，但吞吐突发-空闲剧烈波动导致Roblox加载极慢；WiFi未断开",
+      "root_cause": "空口介质争用/同频干扰导致信道拥塞，本机射频无缺陷；ACK fail/RTS fail累加且Rx error高达28~47%，PER间歇突刺峰值96",
+      "file_path": "cases/performance/CASE-008_LK7OS163-2102_强信号下空口拥塞干扰导致游戏加载慢.md",
+      "source": "LK7OS163-2102",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-009",
+      "title": "CN6 Miracast投屏P2P成功但RTSP连接失败",
+      "category": "p2p-connection",
+      "tags": ["Miracast", "WFD", "投屏", "P2P-GO", "P2P-GROUP-FORMATION-FAILURE", "RTSP超时", "MtkNetworkSession", "DHCP成功", "Mgmt Frame TX Fail", "CN6", "MTK平台"],
+      "symptom": "Miracast投屏失败，P2P/DHCP成功但对端未发起RTSP连接",
+      "root_cause": "P2P层管理帧发送失败，或GO模式下WFD Sink未发起RTSP TCP连接（待MTK确认）",
+      "file_path": "cases/p2p-connection/CASE-009_CN6OS16-1398_Miracast投屏P2P成功但RTSP连接失败.md",
+      "source": "CN6OS16-1398",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-010",
+      "title": "蜂窝热点长时间开启导致温升，伴随TetherOffload/BPF网络栈报错",
+      "category": "performance",
+      "tags": ["热点温升", "Tethering", "TetherOffload", "BpfCoordinator", "modem功耗", "灭屏", "蜂窝热点", "conntrack", "LK7", "MTK平台"],
+      "symptom": "蜂窝热点灭屏长时间运行导致过热，电池温升+6.1°C",
+      "root_cause": "modem热点持续高功耗为主因；TetherOffload/BPF报错可能导致额外功耗（待modem确认）",
+      "file_path": "cases/performance/CASE-010_LK7OS163-2134_蜂窝热点长时间开启导致温升.md",
+      "source": "LK7OS163-2134",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-011",
+      "title": "5G AC 隔墙 30m OTA RSSI 弱于对比机，CTIA 开关影响显著",
+      "category": "performance",
+      "tags": ["RSSI", "OTA", "5G AC", "CTIA", "隔墙", "ch36", "射频性能", "CN6", "MTK共性", "弱信号", "对比机测试"],
+      "symptom": "5G AC ch36 隔墙 30m OTA 测试，CN6 RSSI 比对比机低 3—4 dB，不满足 A 标",
+      "root_cause": "CN6 射频接收灵敏度/天线效率弱于对比机；CTIA 开关不一致导致 OTA 与软测数据口径差异",
+      "file_path": "cases/performance/CASE-011_CN6OS16-509_5G_AC隔墙30m_RSSI弱于对比机.md",
+      "source": "CN6OS16-509",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-012",
+      "title": "Shopee 应用层弱网误报 — WiFi/PER正常时报网络不可用，测速佐证系统网络可用",
+      "category": "disconnect",
+      "tags": ["SBE abnormal implementation", "libshp_weaknetwork", "Shopee", "应用层误报", "强信号", "PER低", "wlanLinkQualityMonitor", "LK7", "印度尼西亚", "WifiNetworkQuality", "isHighPingDelay", "torn down wlan0"],
+      "symptom": "Shopee 提示「jaringan tidak tersedia」：截图1时系统WiFi/Ping/PER正常但App报错；截图2测速32.4Mbps佐证系统网络可用",
+      "root_cause": "主因：Shopee弱网库/业务API与系统Connectivity不一致；背景：19:34:04 WifiNetworkQuality扫描失败后tear down wlan0",
+      "file_path": "cases/disconnect/CASE-012_TOS163-35222_Shopee双故障应用层误报与WifiNetworkQuality断连.md",
+      "source": "TOS163-35222",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-013",
+      "title": "双频mesh下5G漫游被Auth Status33(带宽不足)拒绝，困在上行恶化的2.4G导致游戏卡顿（WiFi未断开）",
+      "category": "performance",
+      "tags": ["WiFi卡顿", "漫游失败", "Auth拒绝", "Status Code 33", "STATUS_CODE_ASSOC_DENIED_BANDWIDTH", "AP带宽不足", "band-steering", "5G漫游被拒", "困在2.4G", "上行链路失效", "RTS fail高", "ACK fail高", "信道空闲非拥塞", "PER阵发100%", "吞吐塌陷", "漫游churn", "无断开", "游戏卡顿", "双频mesh", "对比机正常", "MTK mt6878", "LK7", "印尼"],
+      "symptom": "WiFi未断开但游戏偶现卡顿(18:54谷底)，换别的手机连同一WiFi正常；连双频mesh UCOK",
+      "root_cause": "5G漫游87次被Auth Status33(带宽不足,AP拒绝接纳)拒绝困在2.4G，叠加该2.4G上行RTS/ACK fail高、PER阵发100%、信道却空闲，吞吐间歇塌陷致卡顿；非应用层问题",
+      "file_path": "cases/performance/CASE-013_LK7OS163-2188_5G漫游被Status33拒绝困在2.4G导致游戏卡顿.md",
+      "source": "LK7OS163-2188",
+      "created_at": "2026-06-12",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-014",
+      "title": "游戏大流量触发双频误漫游WRONG_KEY导致network lost（Roblox Error 277）",
+      "category": "disconnect",
+      "tags": ["双频误漫游", "scanCalculateTotalScore", "5G频段加分BD200", "WRONG_KEY", "network lost", "乒乓漫游", "同ESS多BSSID", "物理速率坍塌", "PER高", "游戏断网", "Roblox", "MTK driver", "LK7", "印度尼西亚"],
+      "symptom": "Roblox游戏渲染时WiFi突然断开，Error 277；强信号下大流量触发2.4G→5G误漫游，WRONG_KEY后network lost约7s",
+      "root_cause": "MTK scanCalculateTotalScore偏好5G(BD+200)且扫描态cRSSI低估当前AP，高负载下误切弱5G BSS后4-Way握手失败，叠加network lost导致游戏断线；后续形成2.4G/5G乒乓漫游",
+      "file_path": "cases/disconnect/CASE-014_TOS163-35926_游戏大流量双频误漫游WRONG_KEY断网.md",
+      "source": "TOS163-35926",
+      "created_at": "2026-06-12",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-015",
+      "title": "强WiFi下抖音HEVC硬解超时导致加载卡顿（滑走再回可播）",
+      "category": "performance",
+      "tags": ["抖音", "aweme", "HEVC", "QC2V4l2Decoder", "解码超时", "音频underrun", "应用层卡顿", "强信号", "无断开", "WifiNetworkCheck正常", "Probe成功", "进度条加载", "滑走再回可播", "高内存", "录屏争用", "Qualcomm", "wcn6450", "X6878", "中国"],
+      "symptom": "刷抖音进度条加载卡顿，滑到下一个再滑回可播；WiFi RSSI优、Ping/Probe全成功、无断连",
+      "root_cause": "WiFi正常；QC2V4l2Decoder HEVC输出缓冲~10s超时+AudioFlinger underrun，播放管线卡死；抖音~1.8GB内存与录屏加重",
+      "file_path": "cases/performance/CASE-015_X6878OS16-11111_强WiFi下抖音HEVC解码超时导致加载卡顿.md",
+      "source": "X6878OS16-11111",
+      "created_at": "2026-06-16",
       "match_count": 0
     }
   ],
