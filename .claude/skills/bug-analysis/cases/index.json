@@ -205,6 +205,18 @@
       "source": "X6878OS16-11111",
       "created_at": "2026-06-18",
       "match_count": 0
+    },
+    {
+      "id": "CASE-018",
+      "title": "TranEngine结束会话主动关WiFi致刷微信视频断网",
+      "category": "disconnect",
+      "tags": ["TranEngine副作用", "WiFi开关异常", "setWifiEnabled", "locally_generated", "非WiFi驱动故障", "刷视频断网", "com.tencent.mm", "WIFI_STREAM_ON", "SCREEN_OFF", "CaptureLog", "TagLog", "CN6", "MTK平台", "中国"],
+      "symptom": "刷微信视频时WiFi开关自动关闭，用户未手动操作；disconnect reason=3 locally_generated",
+      "root_cause": "com.transsion.tranengine在会话结束(isTranEngineEnabled:false)时调用setWifiEnabled(false)主动关WiFi，非驱动/AP故障",
+      "file_path": "cases/disconnect/CASE-018_TOS163-37551_TranEngine结束会话主动关WiFi致刷视频断网.md",
+      "source": "TOS163-37551",
+      "created_at": "2026-06-18",
+      "match_count": 0
     }
   ],
   "categories": {
