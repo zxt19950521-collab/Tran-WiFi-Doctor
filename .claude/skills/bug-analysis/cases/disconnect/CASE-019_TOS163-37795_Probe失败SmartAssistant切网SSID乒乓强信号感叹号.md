@@ -120,4 +120,5 @@
 - **CASE-014**（弱相关）：驱动 BSSID 漫游导致 network lost；本案为 **框架 SSID 切换**
 
 ## 分析报告
-- `AI-result/issues/TOS163-37795/TOS163-37795-analysis.md`
+- `reports/TOS163-37795-analysis.md`（完整分析报告）
+- 本地日志：`AI-result/issues/TOS163-37795/logs/`
