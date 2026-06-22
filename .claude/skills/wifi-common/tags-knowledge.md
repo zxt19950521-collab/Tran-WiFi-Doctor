@@ -88,6 +88,8 @@
 | 网络验证失败 | 网络连通性验证失败 | `HTTPS probe failed` | 网络不可用 |
 | 强制门户 | 检测到强制门户 | `Captive portal detected` | 网络受限 |
 | 无互联网 | 网络无互联网访问 | `Network has no internet access` | 网络不可用 |
+| 网络已验证可上网 | ConnectivityService 标记 EVER_EVALUATED | `Update score for net.*+EVER_EVALUATED` | 可上网 |
+| 网络未验证感叹号 | 失去验证或尚未 EVER_EVALUATED | `Update score for net.*-IS_VALIDATED` | 状态栏感叹号 |
 
 ### 7. 性能类
 
@@ -130,6 +132,74 @@
 | 飞行模式 | 飞行模式开启/关闭 | `airplane mode` | 连接中断 |
 | 热事件 | 设备过热 | `thermal`, `temperature` | 性能问题 |
 | 内存压力 | 系统内存压力大 | `low memory`, `memory pressure` | 性能问题 |
+| SystemUI发起连接 | 系统框架/SystemUI 代发 WiFi 连接 | `WifiService: connect.*packageNameToUse=com.android.systemui` | 自动选网/连通性恢复 |
+| 用户设置发起连接 | 用户在设置中手动连接 WiFi | `WifiService: connect.*packageNameToUse=com.android.settings` | 用户操作 |
+
+## 框架连接日志解读（WifiService: connect）
+
+分析 **SSID 切换 / 重连 / network lost** 时，必须结合 `WifiService: connect` 判断**谁发起了连接**，避免把框架自动切网误判为用户手动操作。
+
+### 日志格式
+
+```
+WifiService: connect uid=<调用方uid> uidToUse=<实际uid> packageNameToUse=<包名> attributionTagToUse=<tag>
+```
+
+| 字段 | 含义 |
+|------|------|
+| `WifiService: connect` | 有一次 WiFi 连接请求（connectToNetwork 入口） |
+| `uid` / `uidToUse` | 发起连接的应用 UID |
+| `packageNameToUse` | **发起连接的应用包名**（分析重点） |
+
+### 常见 packageNameToUse 对照
+
+| packageNameToUse | 含义 | 分析注意 |
+|------------------|------|----------|
+| `com.android.systemui` | **SystemUI / 系统框架代发** | 常见于 TranWifiSmartAssistant 自动选网、no-internet 恢复、连通性策略触发的重连；**不等于用户在 WiFi 列表手动点击** |
+| `com.android.settings` | **设置应用发起** | 通常为用户在 WiFi 设置页手动选择/连接网络 |
+| 其他第三方包名 | 对应应用发起 | 如游戏/工具调用系统 API 请求连接特定网络 |
+
+### 分析要点
+
+1. 出现 `network lost` 或 SSID 切换后，**向前搜索**同时间窗内的 `WifiService: connect`，确认发起方。
+2. 若多次切换均为 `com.android.systemui`，优先排查 **框架自动选网 / Probe 失败 / SmartAssistant** 链路，而非用户误操作。
+3. 与 `wpa_supplicant: CTRL-EVENT-CONNECTED` / `DISCONNECTED` 时间对齐，可还原完整「谁发起 → 关联 → 断连」链条。
+
+### 参考案例
+
+- **TOS163-37795**：Probe 失败后 SSID 乒乓，`WifiService: connect` 均为 `com.android.systemui`。
+
+## 网络验证状态日志解读（ConnectivityService: Update score for net）
+
+判断 WiFi **是否已验证可上网**、状态栏是否显示**感叹号**，需检索 `ConnectivityService: Update score for net` 同一行末尾的 score 标记。
+
+### 日志格式
+
+```
+ConnectivityService: Update score for net <networkId> : <score标记>
+```
+
+### 判定规则
+
+| 行末 score 标记 | 含义 | 状态栏 |
+|----------------|------|--------|
+| 含 **`+EVER_EVALUATED`** | 该网络**已验证通过，可上网** | 正常（无感叹号） |
+| 含 **`+IS_VALIDATED`** / **`+EVER_VALIDATED`** | 同上，已验证可上网 | 正常 |
+| 含 **`-IS_VALIDATED`** | 网络**未验证/失去验证** | **感叹号** |
+| 仅有 `+IS_UNMETERED` / `+TRANSPORT_PRIMARY` 等，**无 EVER_EVALUATED** | 尚未完成验证，**不可上网** | **感叹号** |
+
+### 分析要点
+
+1. 每次 SSID 切换会产生新的 `net <id>`，通常先出现 `+TRANSPORT_PRIMARY`，**约数秒至数十秒后**才出现 `+EVER_EVALUATED`；此窗口内用户可见感叹号。
+2. 与 `Wifi network validated` / `mValidated=false` 时间对齐，可量化「无网感」持续时间。
+3. `-IS_VALIDATED` 与 Probe 失败、`no-internet access` 常同时出现。
+
+### 参考案例
+
+- **TOS163-37795**：
+  - `12:56:43` net 183 `: -IS_VALIDATED` → 感叹号
+  - `12:56:53` net 184 先 `+TRANSPORT_PRIMARY`，`12:57:02` 才 `+EVER_EVALUATED`
+  - `12:58:55` net 191 `: +EVER_VALIDATED+IS_VALIDATED` → 恢复可上网
 
 ## 断开原因代码速查
 
@@ -211,7 +281,11 @@
   "Doze模式": ["DeviceIdle", "IDLE"],
   "飞行模式": ["airplane mode"],
   "热事件": ["thermal", "temperature"],
-  "内存压力": ["low memory", "memory pressure"]
+  "内存压力": ["low memory", "memory pressure"],
+  "SystemUI发起连接": ["WifiService: connect.*packageNameToUse=com.android.systemui"],
+  "用户设置发起连接": ["WifiService: connect.*packageNameToUse=com.android.settings"],
+  "网络已验证可上网": ["ConnectivityService: Update score for net.*\\+EVER_EVALUATED", "ConnectivityService: Update score for net.*\\+IS_VALIDATED"],
+  "网络未验证感叹号": ["ConnectivityService: Update score for net.*-IS_VALIDATED"]
 }
 ```
 

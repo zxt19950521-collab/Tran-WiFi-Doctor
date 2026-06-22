@@ -215,6 +215,30 @@ WiFi正常使用 → 设备过热 → 热节流 → 吞吐量低/延迟高
 ```
 **检查点**：thermal throttling, Tput低
 
+## 框架连接日志速查（WifiService: connect）
+
+| 日志 | 含义 |
+|------|------|
+| `WifiService: connect uid=` | 有一次 WiFi 连接请求 |
+| `packageNameToUse=com.android.systemui` | **SystemUI/框架代发**（自动选网、连通性恢复等） |
+| `packageNameToUse=com.android.settings` | **用户**在设置里手动连接 |
+| `packageNameToUse=<其他>` | 对应应用发起连接 |
+
+分析 SSID 切换 / `network lost` 时，必须与 `WifiService: connect` 时间对齐，避免把框架自动切网误判为用户操作。
+
+## 网络验证状态速查（ConnectivityService）
+
+| 行末 score 标记 | 含义 |
+|----------------|------|
+| `+EVER_EVALUATED` / `+IS_VALIDATED` | **已验证可上网**，状态栏正常 |
+| `-IS_VALIDATED` | **失去验证**，状态栏**感叹号** |
+| 仅 `+TRANSPORT_PRIMARY` 等，无 EVER_EVALUATED | 尚未验证完成，**感叹号** |
+
+```
+ConnectivityService: Update score for net 183 : -IS_VALIDATED
+ConnectivityService: Update score for net 191 : +EVER_VALIDATED+IS_VALIDATED
+```
+
 ## 输出模板
 
 ```markdown

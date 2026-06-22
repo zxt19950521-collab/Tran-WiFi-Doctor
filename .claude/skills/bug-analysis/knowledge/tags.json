@@ -750,6 +750,38 @@
       "description": "wlanLinkQualityMonitor在问题截图时刻PER极低，排除空口高PER导致应用报错",
       "patterns": ["wlanLinkQualityMonitor.*PER\\([0-9]\\)", "wlanLinkQualityMonitor.*PER\\(1[0-9]\\)"],
       "auto_extract": false
+    },
+    {
+      "id": "TAG-093",
+      "name": "SystemUI发起连接",
+      "category": "system-event",
+      "description": "SystemUI/框架代发WiFi连接，常见于自动选网、连通性恢复，非用户手动点WiFi列表",
+      "patterns": ["WifiService: connect.*packageNameToUse=com.android.systemui"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-094",
+      "name": "用户设置发起连接",
+      "category": "system-event",
+      "description": "用户在WiFi设置页手动连接网络",
+      "patterns": ["WifiService: connect.*packageNameToUse=com.android.settings"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-095",
+      "name": "网络已验证可上网",
+      "category": "dns-network",
+      "description": "ConnectivityService标记EVER_EVALUATED/IS_VALIDATED，WiFi已验证可上网，状态栏无感叹号",
+      "patterns": ["ConnectivityService: Update score for net.*\\+EVER_EVALUATED", "ConnectivityService: Update score for net.*\\+IS_VALIDATED"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-096",
+      "name": "网络未验证感叹号",
+      "category": "dns-network",
+      "description": "ConnectivityService标记-IS_VALIDATED或尚无EVER_EVALUATED，状态栏显示感叹号",
+      "patterns": ["ConnectivityService: Update score for net.*-IS_VALIDATED"],
+      "auto_extract": true
     }
   ],
   "extraction_rules": {
@@ -831,7 +863,11 @@
       "Doze模式": ["DeviceIdle", "IDLE"],
       "飞行模式": ["airplane mode"],
       "热事件": ["thermal", "temperature"],
-      "内存压力": ["low memory", "memory pressure"]
+      "内存压力": ["low memory", "memory pressure"],
+      "SystemUI发起连接": ["WifiService: connect.*packageNameToUse=com.android.systemui"],
+      "用户设置发起连接": ["WifiService: connect.*packageNameToUse=com.android.settings"],
+      "网络已验证可上网": ["ConnectivityService: Update score for net.*\\+EVER_EVALUATED", "ConnectivityService: Update score for net.*\\+IS_VALIDATED"],
+      "网络未验证感叹号": ["ConnectivityService: Update score for net.*-IS_VALIDATED"]
     },
     "断开原因代码": {
       "0": "未指定原因 → 建链后秒断",

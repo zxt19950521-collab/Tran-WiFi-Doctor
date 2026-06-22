@@ -71,6 +71,16 @@
 - 事件结果
 - 相关参数
 
+**main log — 连接发起方（硬规则）**：分析 SSID 切换、`network lost`、重连时，必须检索 `WifiService: connect`，读取 `packageNameToUse`：
+- `com.android.systemui` → SystemUI/框架代发（自动选网、连通性恢复），**非用户手动点 WiFi 列表**
+- `com.android.settings` → 用户在设置页手动连接
+- 详见 `wifi-common/tags-knowledge.md`「框架连接日志解读」
+
+**main log — 网络验证/感叹号（硬规则）**：检索 `ConnectivityService: Update score for net`，看行末 score 标记：
+- 含 `+EVER_EVALUATED`（或 `+IS_VALIDATED`）→ 已验证可上网，状态栏无感叹号
+- 含 `-IS_VALIDATED`，或仅有 `+TRANSPORT_PRIMARY` 而无 EVER_EVALUATED → 不可上网，状态栏感叹号
+- 详见 `wifi-common/tags-knowledge.md`「网络验证状态日志解读」
+
 ### 步骤 4: 识别失败模式
 分析失败模式：
 - 失败阶段（scan/auth/assoc/eapol/post-RSNA）

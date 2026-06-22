@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-18",
+  "last_updated": "2026-06-22",
   "cases": [
     {
       "id": "CASE-001",
@@ -216,6 +216,18 @@
       "file_path": "cases/disconnect/CASE-018_TOS163-37551_TranEngine结束会话主动关WiFi致刷视频断网.md",
       "source": "TOS163-37551",
       "created_at": "2026-06-18",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-019",
+      "title": "Probe失败触发SmartAssistant SSID乒乓，强信号下network lost与状态栏感叹号",
+      "category": "disconnect",
+      "tags": ["network lost", "强信号", "Probe失败", "网络验证失败", "无互联网", "网络未验证感叹号", "SystemUI发起连接", "TranWifiSmartAssistant", "SSID乒乓", "reason=3 locally_generated", "EVER_EVALUATED", "ConnectivityService", "CN6", "菲律宾", "MTK driver", "粉丝反馈"],
+      "symptom": "强信号(-44~-52dBm)下偶现WiFi丢失感；12:56-12:59间9次network lost，JRC RICE 5G与SHOAI2025_2.4G SSID乒乓，状态栏感叹号",
+      "root_cause": "NetworkProbe连接gstatic失败→no-internet→TranWifiSmartAssistant自动切网；10段会话中4次短连接(<6s)未完成EVER_EVALUATED即被SystemUI打断，非弱信号/非AP踢线",
+      "file_path": "cases/disconnect/CASE-019_TOS163-37795_Probe失败SmartAssistant切网SSID乒乓强信号感叹号.md",
+      "source": "TOS163-37795",
+      "created_at": "2026-06-22",
       "match_count": 0
     }
   ],

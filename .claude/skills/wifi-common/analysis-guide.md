@@ -76,6 +76,41 @@
 - 信号弱断开
 - 漫游失败
 
+### 连接发起方识别（WifiService: connect）
+
+**特征日志**：
+```
+WifiService: connect uid=... packageNameToUse=com.android.systemui
+WifiService: connect uid=... packageNameToUse=com.android.settings
+```
+
+**解读规则**：
+
+| packageNameToUse | 含义 |
+|------------------|------|
+| `com.android.systemui` | SystemUI/框架代发，常见于自动选网、连通性恢复（**非用户手动点 WiFi 列表**） |
+| `com.android.settings` | 用户在 WiFi 设置页手动连接 |
+| 其他包名 | 对应第三方应用发起 |
+
+**分析要点**：SSID 切换或 `network lost` 后，查同时间窗 `WifiService: connect` 的 `packageNameToUse`，区分用户操作 vs 框架策略。详见 `tags-knowledge.md`「框架连接日志解读」。
+
+### 网络验证状态（ConnectivityService: Update score for net）
+
+**特征日志**：
+```
+ConnectivityService: Update score for net 183 : -IS_VALIDATED
+ConnectivityService: Update score for net 184 : +EVER_EVALUATED
+```
+
+**解读规则**：
+
+| 行末标记 | 含义 |
+|----------|------|
+| 含 `+EVER_EVALUATED`（或 `+IS_VALIDATED`） | WiFi **已验证可上网**，状态栏无感叹号 |
+| 含 `-IS_VALIDUATED`，或仅有 `+TRANSPORT_PRIMARY` 而无 EVER_EVALUATED | **不可上网**，状态栏显示**感叹号** |
+
+每次切换 SSID 后常有数秒～数十秒验证窗口。详见 `tags-knowledge.md`「网络验证状态日志解读」。
+
 ## TAG 使用技巧
 
 ### 自动提取
