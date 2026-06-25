@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-22",
+  "last_updated": "2026-06-25",
   "cases": [
     {
       "id": "CASE-001",
@@ -228,6 +228,18 @@
       "file_path": "cases/disconnect/CASE-019_TOS163-37795_Probe失败SmartAssistant切网SSID乒乓强信号感叹号.md",
       "source": "TOS163-37795",
       "created_at": "2026-06-22",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-020",
+      "title": "Facebook弱信号高时延导致图片/视频灰屏加载慢（WiFi未断开）",
+      "category": "performance",
+      "tags": ["WiFi未断开", "第三方App加载慢", "Facebook灰屏", "RSSI低", "协商速率低", "延迟高", "Probe超时", "Ping超时", "ACK fail主导", "PER突刺", "上行链路质量差", "2.4G ch5", "AP不密集", "信道空口活动突发", "MTK driver", "粉丝反馈"],
+      "symptom": "Facebook图片/视频灰屏加载慢；WiFi持续validated未断开，但截图时刻Ping 1s超时、速率坍塌到10/10Mbps",
+      "root_cause": "弱信号导致物理速率坍塌、PER突刺和ACK fail主导的上行链路质量差，叠加ch5短时空口活动突发，引发Facebook内容加载高时延",
+      "file_path": "cases/performance/CASE-020_TOS163-38141_Facebook弱信号高时延灰屏加载慢.md",
+      "source": "TOS163-38141",
+      "created_at": "2026-06-25",
       "match_count": 0
     }
   ],
