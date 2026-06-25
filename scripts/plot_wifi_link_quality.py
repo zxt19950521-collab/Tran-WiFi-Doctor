@@ -33,6 +33,7 @@ WiFi Link Quality 绘图脚本
 import re
 import os
 import sys
+import tempfile
 from datetime import datetime, timedelta
 from urllib.parse import unquote
 
@@ -89,13 +90,68 @@ def freq_to_channel(freq_mhz):
 
 def parse_connection_time(time_str):
     """Parse 'MM-DD HH:MM:SS.mmmmmm' or 'MM-DD HH:MM:SS.mmm' to datetime (year=2026)."""
-    for fmt in ('%m-%d %H:%M:%S.%f', '%m-%d %H:%M:%S'):
+    time_str = f"2026 {time_str.strip()}"
+    for fmt in ('%Y %m-%d %H:%M:%S.%f', '%Y %m-%d %H:%M:%S'):
         try:
-            dt = datetime.strptime(time_str.strip(), fmt)
-            return dt.replace(year=2026)
+            return datetime.strptime(time_str, fmt)
         except ValueError:
             continue
     return None
+
+
+def read_timestamp_sorted_main_log_lines(file_paths):
+    """Read multiple main_log files as one chronological stream.
+
+    Connection sessions can span log rotation. Sorting timestamped lines before
+    parsing prevents open STA sessions from being closed at each file boundary.
+    """
+    time_re = re.compile(r'^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)')
+    encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
+    timestamped = []
+    order = 0
+
+    for file_path in file_paths or []:
+        lines = []
+        for encoding in encodings:
+            try:
+                with open(file_path, 'r', encoding=encoding, errors='ignore') as f:
+                    lines = f.readlines()
+                break
+            except UnicodeDecodeError:
+                continue
+        for line in lines:
+            tm = time_re.match(line.strip())
+            if not tm:
+                continue
+            ts = parse_connection_time(tm.group(1))
+            if ts is None:
+                continue
+            timestamped.append((ts, order, line if line.endswith('\n') else line + '\n'))
+            order += 1
+
+    timestamped.sort(key=lambda item: (item[0], item[1]))
+    return [line for _, _, line in timestamped]
+
+
+def extract_connection_sessions_from_files(file_paths):
+    """Extract connection sessions from multiple main_logs with state continuity."""
+    lines = read_timestamp_sorted_main_log_lines(file_paths)
+    if not lines:
+        return {'wlan': [], 'p2p': [], 'softap': []}
+
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile('w', encoding='utf-8', delete=False,
+                                        suffix='.main_log') as tmp:
+            tmp_path = tmp.name
+            tmp.writelines(lines)
+        return extract_connection_sessions(tmp_path)
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
 
 def extract_ssid_from_id_str(id_str):
@@ -884,18 +940,18 @@ def load_connection_sessions(main_log_paths):
     WLAN(STA) 优先采用 TranWifiSmartAssistantController 的准确连接段(带真实 SSID)；
     wpa_supplicant 的 wlan 会话仅保留与之不重叠的部分(如失败的关联尝试)。
     """
-    sess_list = []
     main_log_paths = _dedupe_paths(main_log_paths)
+    valid_paths = []
     for mp in main_log_paths:
         if not os.path.exists(mp):
             print(f"main_log 不存在，跳过：{mp}")
             continue
-        sess_list.append(extract_connection_sessions(mp))
-    if not sess_list:
+        valid_paths.append(mp)
+    if not valid_paths:
         return None
-    merged = merge_connection_sessions(sess_list)
+    merged = extract_connection_sessions_from_files(valid_paths)
 
-    sa_sessions = extract_smart_assistant_sta_all(main_log_paths)
+    sa_sessions = extract_smart_assistant_sta_all(valid_paths)
     if sa_sessions:
         sa_sessions.sort(key=lambda s: s.start_time)
         # SmartAssistant 只有 SSID，用与之重叠的 wpa 会话补 BSSID/信道(freq)
@@ -1090,7 +1146,7 @@ def _scan_parse_ts(line):
     if len(ts) < 15:
         return None
     try:
-        return datetime.strptime(ts, '%m-%d %H:%M:%S.%f').replace(year=2026)
+        return datetime.strptime(f"2026 {ts}", '%Y %m-%d %H:%M:%S.%f')
     except ValueError:
         return None
 
@@ -1490,8 +1546,7 @@ def extract_data(file_path):
         if len(time_str) < 15:
             continue
         try:
-            time_obj = datetime.strptime(time_str, '%m-%d %H:%M:%S.%f')
-            time_obj = time_obj.replace(year=2026)
+            time_obj = datetime.strptime(f"2026 {time_str}", '%Y %m-%d %H:%M:%S.%f')
         except ValueError:
             continue
 
@@ -1519,8 +1574,7 @@ def extract_data(file_path):
             if len(time_str) < 15:
                 continue
             try:
-                time_obj = datetime.strptime(time_str, '%m-%d %H:%M:%S.%f')
-                time_obj = time_obj.replace(year=2026)
+                time_obj = datetime.strptime(f"2026 {time_str}", '%Y %m-%d %H:%M:%S.%f')
             except ValueError:
                 continue
             match = pattern.search(line)

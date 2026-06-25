@@ -23,6 +23,7 @@ WiFi Connection State Timeline 绘图脚本
 import re
 import os
 import sys
+import tempfile
 from datetime import datetime
 from urllib.parse import unquote
 
@@ -74,13 +75,69 @@ def freq_to_channel(freq_mhz):
 
 def parse_time(time_str):
     """Parse 'MM-DD HH:MM:SS.mmmmmm' or 'MM-DD HH:MM:SS.mmm' to datetime (year=2026)."""
-    for fmt in ('%m-%d %H:%M:%S.%f', '%m-%d %H:%M:%S'):
+    time_str = f"2026 {time_str.strip()}"
+    for fmt in ('%Y %m-%d %H:%M:%S.%f', '%Y %m-%d %H:%M:%S'):
         try:
-            dt = datetime.strptime(time_str.strip(), fmt)
-            return dt.replace(year=2026)
+            return datetime.strptime(time_str, fmt)
         except ValueError:
             continue
     return None
+
+
+def read_timestamp_sorted_lines(file_paths):
+    """Read multiple log files and return timestamped lines sorted as one stream.
+
+    This keeps open connection sessions alive across log rotation. Without this,
+    parsing each main_log independently closes an open connection at that file's
+    last timestamp, so timelines can incorrectly stop at the rotation point.
+    """
+    time_re = re.compile(r'^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)')
+    encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
+    timestamped = []
+    order = 0
+
+    for file_path in file_paths:
+        lines = []
+        for encoding in encodings:
+            try:
+                with open(file_path, 'r', encoding=encoding, errors='ignore') as f:
+                    lines = f.readlines()
+                break
+            except UnicodeDecodeError:
+                continue
+        for line in lines:
+            tm = time_re.match(line.strip())
+            if not tm:
+                continue
+            ts = parse_time(tm.group(1))
+            if ts is None:
+                continue
+            timestamped.append((ts, order, line if line.endswith('\n') else line + '\n'))
+            order += 1
+
+    timestamped.sort(key=lambda item: (item[0], item[1]))
+    return [line for _, _, line in timestamped]
+
+
+def extract_sessions_from_files(file_paths):
+    """Parse multiple main_log files as a single chronological stream."""
+    lines = read_timestamp_sorted_lines(file_paths)
+    if not lines:
+        return {'wlan': [], 'p2p': [], 'softap': []}
+
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile('w', encoding='utf-8', delete=False,
+                                        suffix='.main_log') as tmp:
+            tmp_path = tmp.name
+            tmp.writelines(lines)
+        return extract_sessions(tmp_path)
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
 
 def extract_ssid_from_id_str(id_str):
@@ -568,8 +625,7 @@ def plot_from_file(file_path, output_dir=None, save_filename="connection_timelin
 
 
 def plot_from_files(file_paths, output_dir=None, save_filename="connection_timeline.png"):
-    """Multi-file merge: extract each → merge → plot single chart."""
-    sessions_list = []
+    """Multi-file merge: parse files as one chronological stream → plot single chart."""
     valid_files = []
 
     for fp in file_paths:
@@ -577,22 +633,18 @@ def plot_from_files(file_paths, output_dir=None, save_filename="connection_timel
             print(f"文件不存在，跳过：{fp}")
             continue
         print(f"\n{'='*60}")
-        print(f"提取数据：{os.path.basename(fp)}")
+        print(f"纳入数据：{os.path.basename(fp)}")
         print(f"{'='*60}")
-        sessions = extract_sessions(fp)
-        total = sum(len(sessions[iface]) for iface in sessions)
-        print(f"提取到 {total} 个连接会话")
-        sessions_list.append(sessions)
         valid_files.append(fp)
 
-    if not sessions_list:
+    if not valid_files:
         print("无有效数据")
         return None
 
-    merged = merge_sessions(sessions_list)
+    merged = extract_sessions_from_files(valid_files)
     total = sum(len(merged[iface]) for iface in merged)
     print(f"\n{'='*60}")
-    print(f"合并 {len(valid_files)} 个文件: {total} 个连接会话")
+    print(f"合并 {len(valid_files)} 个文件为连续时间流: {total} 个连接会话")
     print(f"{'='*60}")
 
     print_summary(merged)
