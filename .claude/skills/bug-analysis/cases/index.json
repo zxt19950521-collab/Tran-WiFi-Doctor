@@ -265,6 +265,30 @@
       "source": "KN6OS16-2806",
       "created_at": "2026-06-26",
       "match_count": 0
+    },
+    {
+      "id": "CASE-023",
+      "title": "RADIO_LOST断连后扫描未命中saved网络，Framework不重连导致WiFi连接慢",
+      "category": "disconnect",
+      "tags": ["slow-connect", "连接慢", "RADIO_LOST", "reason=10003", "BTO disconnection", "TX_ERR漫游", "PER高", "disconnectedstate", "未自动重连", "candidate is null", "mValidSavedNetworks空", "扫描未命中", "scan-miss", "dense-ap", "TranWifiSmartAssistant", "setWifiEnabled", "Roblox", "CN6", "菲律宾", "MTK driver", "粉丝反馈"],
+      "symptom": "偶现WiFi连接需约1分钟；游戏场景PER 94%后RADIO_LOST断连，Framework 108s未重连，用户toggle WiFi后24s才连上；assoc仅55ms",
+      "root_cause": "TX_ERR漫游失败→BTO/RADIO_LOST断连；Kernel/Framework多次扫描但间歇不含目标SSID→mValidSavedNetworks={}→candidate is null→无自动重连；非关联/DHCP慢",
+      "file_path": "cases/disconnect/CASE-023_CN6OS16-2071_RADIO_LOST断连后扫描未命中saved网络Framework不重连导致连接慢.md",
+      "source": "CN6OS16-2071",
+      "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-024",
+      "title": "TranSystemUI亮屏异常toggle WiFi导致扫描abort，WiFi列表为空",
+      "category": "scan-failure",
+      "tags": ["scan-failure", "Scan aborted", "reason=-7", "0 Bss", "Empty ScanResult", "WiFi列表为空", "TranSystemUI", "TrAirplaneModeTile", "wakefulness-changed", "亮屏", "setWifiEnabled", "SystemUI副作用", "wlanStop abort scan", "DRIVER ABORT", "重启恢复", "CN6c", "巴基斯坦", "MTK driver", "粉丝反馈"],
+      "symptom": "周围多AP可见但WiFi设置列表完全为空，高概率；重启手机后恢复",
+      "root_cause": "亮屏后TranSystemUI TrAirplaneModeTile异常setWifiEnabled(false→true)，扫描被abort(reason=-7)，Kernel 0 Bss；非固件扫不到热点",
+      "file_path": "cases/scan-failure/CASE-024_TOS163-38362_TranSystemUI亮屏toggleWiFi导致扫描abort列表为空.md",
+      "source": "TOS163-38362",
+      "created_at": "2026-06-08",
+      "match_count": 0
     }
   ],
   "categories": {
