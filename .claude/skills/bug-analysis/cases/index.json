@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-08",
+  "last_updated": "2026-06-30",
   "cases": [
     {
       "id": "CASE-001",
@@ -288,6 +288,18 @@
       "file_path": "cases/scan-failure/CASE-024_TOS163-38362_TranSystemUI亮屏toggleWiFi导致扫描abort列表为空.md",
       "source": "TOS163-38362",
       "created_at": "2026-06-08",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-025",
+      "title": "Wild Rift大厅41ms对局5ms与系统WiFi测试3ms不一致（WiFi链路正常）",
+      "category": "performance",
+      "tags": ["Wild Rift", "league.wildrift", "应用层延迟显示", "WifiNetworkCheck", "Ping与Probe分层", "强信号", "无断开", "GCloud", "GPMSDK", "粉丝反馈", "菲律宾", "CN6", "MTK平台", "非WiFi问题"],
+      "symptom": "系统WiFi测试3ms；Wild Rift大厅Network 41ms、对局内5ms；用户疑WiFi不稳定",
+      "root_cause": "WiFi全程正常(Ping 3~17ms全success)；大厅/对局/系统测试为不同探测对象，非WiFi从差变好；游戏GCloud延迟UI分阶段显示",
+      "file_path": "cases/performance/CASE-025_CN6OS16-2171_WildRift大厅对局延迟显示差异WiFi正常.md",
+      "source": "CN6OS16-2171",
+      "created_at": "2026-06-30",
       "match_count": 0
     }
   ],
