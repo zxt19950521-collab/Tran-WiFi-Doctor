@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-30",
+  "last_updated": "2026-06-08",
   "cases": [
     {
       "id": "CASE-001",
@@ -325,8 +325,19 @@
       "source": "CN6OS16-2216",
       "created_at": "2026-06-30",
       "match_count": 0
+    },
+    {
+      "id": "CASE-029",
+      "title": "酒店WiFi bypass门户后VALIDATED滞留，NetworkMonitor未复验不弹CaptivePortal",
+      "category": "auth-failure",
+      "tags": ["CaptivePortal", "酒店WiFi", "IHG", "linkbroad", "NetworkMonitor", "VALIDATED状态滞留", "直接使用此网络", "Probe失败", "CaptivePortalLogin", "portal.linkbroad.com", "location.replace", "已连接无法上网", "非WiFi射频故障", "框架体验问题", "CN6c", "MTK平台"],
+      "symptom": "IHG/linkbroad酒店WiFi已连满格但无法上网；用户点「直接使用此网络」后Portal不再弹出；Probe每分钟failed",
+      "root_cause": "用户bypass门户→VALIDATED滞留→AOSP NetworkMonitor未周期复验不弹Portal；网关继续HTTP劫持；App不解析JS门户HTML",
+      "file_path": "cases/auth-failure/CASE-029_174172563K000402_酒店WiFi bypass门户VALIDATED滞留不弹Portal.md",
+      "source": "174172563K000402",
+      "created_at": "2026-06-08",
+      "match_count": 0
     }
-  ],
   "categories": {
     "p2p-connection": "P2P连接失败",
     "dhcp-failure": "DHCP失败",
