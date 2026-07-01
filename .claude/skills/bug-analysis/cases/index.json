@@ -301,6 +301,30 @@
       "source": "CN6OS16-2171",
       "created_at": "2026-06-30",
       "match_count": 0
+    },
+    {
+      "id": "CASE-027",
+      "title": "游戏时Messenger通知弹幕+后台更新导致WiFi延迟尖峰后恢复（WiFi未断开）",
+      "category": "performance",
+      "tags": ["游戏延迟尖峰", "Messenger通知", "GameMode弹幕", "showBarrageWindow", "后台更新争用", "SplitInstall", "PER间歇突刺", "网关Ping尖峰", "无断开", "强信号满格", "Mobile Legends", "CN6", "菲律宾", "粉丝反馈", "MTK driver"],
+      "symptom": "MLBB游戏中Messenger通知弹出后WiFi变慢约20s后恢复；截图游戏Ping 125ms红、WiFi满格；网关Ping 4ms→82~103ms→14ms",
+      "root_cause": "Messenger通知触发GameMode弹幕+Play Store静默更新与游戏争用CPU/带宽；PER 50~85、网关Ping尖峰；非断连非弱信号",
+      "file_path": "cases/performance/CASE-027_CN6OS16-2169_游戏Messenger通知弹幕后台更新导致延迟尖峰后恢复.md",
+      "source": "CN6OS16-2169",
+      "created_at": "2026-06-30",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-028",
+      "title": "游戏温控FPS波动被误判为WiFi信号下降（WiFi链路正常）",
+      "category": "performance",
+      "tags": ["游戏卡顿", "非WiFi断连", "强信号", "温控MODERATE", "FPS波动", "帧时延尖峰", "用户误判", "粉丝体验类", "Mobile Legends", "CN6", "菲律宾", "粉丝反馈"],
+      "symptom": "游戏中通知弹出感觉WiFi信号下降并卡顿；RSSI -34~-45、Ping 4~14ms全成功、无断连；未见弱网弹窗",
+      "root_cause": "SKIN MODERATE~47°C致FPS/帧时延尖峰(max 383ms)；WiFi链路正常；用户主观关联通知与信号下降；同机CASE-027证据更完整",
+      "file_path": "cases/performance/CASE-028_CN6OS16-2216_游戏温控FPS波动被误判为WiFi信号下降.md",
+      "source": "CN6OS16-2216",
+      "created_at": "2026-06-30",
+      "match_count": 0
     }
   ],
   "categories": {
