@@ -337,7 +337,20 @@
       "source": "174172563K000402",
       "created_at": "2026-06-08",
       "match_count": 0
+    },
+    {
+      "id": "CASE-030",
+      "title": "SystemUI状态栏WiFi图标隐藏，WiFi已validated但用户误判需多次连接",
+      "category": "disconnect",
+      "tags": ["SystemUI状态栏", "WiFi图标隐藏", "endSideContentAlpha", "TrCollapsedStatusBarFragment", "mSystemIconsView", "UI层ConnectionFailure", "单次assoc成功", "validated", "日志未复现多次assoc", "SCREEN_OFF", "TranSystemUI", "CN6c", "孟加拉国", "粉丝反馈", "MTK平台"],
+      "symptom": "粉丝反馈WiFi首次需多次尝试；录屏状态栏仅4.5G无WiFi图标；Settings Connection failure后显示Connected但状态栏仍无图标",
+      "root_cause": "WiFi框架单次assoc成功且validated；SCREEN_OFF后TrCollapsedStatusBarFragment endSideContentAlpha=0隐藏mSystemIconsView，亮屏/解锁未恢复；用户误判未连接反复手动连触发UI层Connection failure",
+      "file_path": "cases/disconnect/CASE-030_TOS163-40301_SystemUI状态栏WiFi图标隐藏导致误判需多次连接.md",
+      "source": "TOS163-40301",
+      "created_at": "2026-06-08",
+      "match_count": 0
     }
+  ],
   "categories": {
     "p2p-connection": "P2P连接失败",
     "dhcp-failure": "DHCP失败",
