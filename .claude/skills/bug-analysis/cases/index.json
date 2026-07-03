@@ -303,6 +303,18 @@
       "match_count": 0
     },
     {
+      "id": "CASE-026",
+      "title": "R&D专网网关ARP无响应导致已连接无互联网（L2/DHCP正常，同机R&D-Test正常）",
+      "category": "disconnect",
+      "tags": ["已连接无互联网", "NUD_FAILED", "LOST_PROVISIONING", "网关ARP无响应", "L2正常L3失败", "DHCP正常", "validated=false", "IpReachabilityMonitor", "UnisocExtDataController", "SPRD平台", "ylog", "随机MAC", "DHCP Relay", "Cambium AP", "同机对比SSID", "tcpdump实锤", "重启恢复", "单机问题", "X6725B", "孟加拉"],
+      "symptom": "连R&D WiFi显示Connected no internet；L2关联与4-way成功；对比机同AP正常；重启可恢复",
+      "root_cause": "DHCP已分配192.168.21.163但网关192.168.20.1对ARP零响应(113 REQ/0 REP)，NUD_FAILED致validated=false；同机R&D-Test ARP正常+VALIDATED，属R&D专网/AP配置问题",
+      "file_path": "cases/disconnect/CASE-026_X6725BOS16-200_R&D专网网关ARP无响应导致已连接无互联网.md",
+      "source": "X6725BOS16-200",
+      "created_at": "2026-07-03",
+      "match_count": 0
+    },
+    {
       "id": "CASE-027",
       "title": "游戏时Messenger通知弹幕+后台更新导致WiFi延迟尖峰后恢复（WiFi未断开）",
       "category": "performance",
