@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-05-29",
+  "last_updated": "2026-06-29",
   "cases": [
     {
       "id": "CASE-001",
@@ -25,6 +25,44 @@
       "source": "OS162-34615",
       "created_at": "2026-05-29",
       "match_count": 0
+    },
+    {
+      "id": "CASE-003",
+      "title": "手机向PC分享图片/文档提示连接失败（P2P连接成功后DHCP失败）",
+      "category": "dhcp-failure",
+      "tags": ["P2P连接成功", "4次握手成功", "DHCP失败", "APF ENOSYS", "DHCP REQUEST无ACK", "DhcpClient ILLEGAL ARGUMENT", "IpClient初始化失败", "IP地址未配置", "WIFI_P2P_TIMEOUT", "极速互传", "CN5c", "MTK平台"],
+      "symptom": "P2P连接成功后业务失败，IP地址未配置",
+      "root_cause": "P2P接口不支持APF导致IpClient初始化失败，或GO端DHCP服务异常",
+      "file_path": "cases/dhcp-failure/CASE-003_OS162-40436_P2P连接成功后DHCP失败.md",
+      "source": "OS162-40436",
+      "created_at": "2026-06-01",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-004",
+      "title": "LJ9复杂待机功耗超标-蓝牙扫描阻塞conn",
+      "category": "performance",
+      "tags": ["待机功耗", "复杂待机", "LPM blocked by conn", "BR_INQUIRY_SCAN", "BLE_ADV", "GMS", "block26M", "Connsys BTWIFI", "LJ9", "MTK平台"],
+      "symptom": "复杂待机电流63.8mA（预期30mA），conn阻塞无法深度休眠",
+      "root_cause": "GMS发起BT频繁Inquiry扫描与BLE广播，Connsys BT活跃远超WiFi，阻塞系统LPM；REASON_LMAC_NOT_RDY为WiFi关闭态正常表现非根因",
+      "file_path": "cases/performance/CASE-004_LJ9OS16-81_WiFi关闭后block26M未释放待机功耗超标.md",
+      "source": "LJ9OS16-81",
+      "created_at": "2026-06-29",
+      "match_count": 0,
+      "power_case": "PWR-001"
+    },
+    {
+      "id": "PWR-001",
+      "title": "LJ9复杂待机GMS蓝牙扫描阻塞conn",
+      "category": "power-consumption",
+      "tags": ["待机功耗", "复杂待机", "LPM blocked by conn", "BR_INQUIRY_SCAN", "BLE_ADV", "GMS", "block26M", "Connsys BTWIFI", "LJ9"],
+      "symptom": "复杂待机电流63.8mA，BT扫描/广播导致conn阻塞",
+      "root_cause": "GMS发起BT频繁扫描与BLE广播，Connsys BT侧活跃主导，系统LPM被conn阻塞",
+      "file_path": "cases/power-consumption/PWR-001_LJ9OS16-81_复杂待机GMS蓝牙扫描阻塞conn.md",
+      "source": "LJ9OS16-81",
+      "created_at": "2026-06-29",
+      "match_count": 0,
+      "related_case": "CASE-004"
     }
   ],
   "categories": {
@@ -33,6 +71,8 @@
     "auth-failure": "认证失败",
     "scan-failure": "扫描失败",
     "disconnect": "断开连接",
-    "performance": "性能问题"
-  }
+    "performance": "性能问题",
+    "power-consumption": "功耗专题"
+  },
+  "power_consumption_summary": "cases/power-consumption/SUMMARY.md"
 }
