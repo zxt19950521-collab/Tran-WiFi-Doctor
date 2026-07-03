@@ -1,9 +1,9 @@
-# CASE-004: LJ9 复杂待机功耗超标 — Conn 被蓝牙阻塞（非 WiFi 根因）
+# CASE-031: LJ9 复杂待机功耗超标 — Conn 被蓝牙阻塞（非 WiFi 根因）
 
 > **根因以功耗专题为准**：`cases/power-consumption/PWR-001_LJ9OS16-81_复杂待机GMS蓝牙扫描阻塞conn.md`
 
 ## 基本信息
-- **案例ID**: CASE-004
+- **案例ID**: CASE-031
 - **功耗专题**: PWR-001
 - **分类**: performance / power-consumption
 - **来源**: LJ9OS16-81

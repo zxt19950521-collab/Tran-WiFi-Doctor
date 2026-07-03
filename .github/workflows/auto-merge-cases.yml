@@ -1,0 +1,52 @@
+name: Auto Merge Cases PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.claude/skills/bug-analysis/cases/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'zxt19950521-collab'
+    steps:
+      - name: Check if only cases files changed
+        id: check-files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const onlyCases = files.every(file =>
+              file.filename.startsWith('.claude/skills/bug-analysis/cases/')
+            );
+
+            return onlyCases;
+
+      - name: Auto merge
+        if: steps.check-files.outputs.result == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash'
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ 案例已自动合入！感谢贡献。'
+            });
