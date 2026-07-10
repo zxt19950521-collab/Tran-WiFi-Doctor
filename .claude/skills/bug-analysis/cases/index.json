@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-07-07",
+  "last_updated": "2026-07-10",
   "cases": [
     {
       "id": "CASE-001",
@@ -411,6 +411,18 @@
       "created_at": "2026-06-29",
       "match_count": 0,
       "related_case": "CASE-031"
+    },
+    {
+      "id": "CASE-034",
+      "title": "CN6 STA连Jammmy热点IPv6-only OFFER+RA无效导致双栈无出口周期断连",
+      "category": "dhcp-failure",
+      "tags": ["STA连热点", "关联成功", "RFC8925-IPv6only", "DHCP止于OFFER", "OFFER-yiaddr0", "Option108", "RA-RouterLifetime0", "PIO无效", "双栈无出口", "POST_DHCP(3)", "PROVISIONING_TIMEOUT-18s", "locally_generated", "无VALIDATED", "iPhone热点", "CN6", "MTK平台", "Android16"],
+      "symptom": "STA连对方热点L2成功但无法上网，~18s连断循环，0 validated",
+      "root_cause": "热点RFC8925 IPv6-only OFFER(yiaddr=0+opt108)但RA无效(Router LT=0/PIO::)，双栈无出口；IpClient 18s超时放大为可见循环",
+      "file_path": "cases/dhcp-failure/CASE-034_TOS163-42064_STA连Jammmy_IPv6only-OFFER_RA无效_双栈无出口_周期断连.md",
+      "source": "TOS163-42064",
+      "created_at": "2026-07-10",
+      "match_count": 0
     }
   ],
   "categories": {
