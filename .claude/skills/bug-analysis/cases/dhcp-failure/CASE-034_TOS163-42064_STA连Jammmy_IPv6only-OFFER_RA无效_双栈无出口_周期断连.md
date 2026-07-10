@@ -77,6 +77,45 @@
 | RA PIO | prefix_len=0, lifetime=0, prefix=:: |
 | RA PREF64 | 64:ff9b::/96 |
 
+## IPv6 RA 字段语义（RFC 4861）
+
+OFFER 后 CN6 发 RS，收到 RA（源 `fe80::8c08:aaff:fe0c:eb64`），但 Router Lifetime 与 PIO 均无效，是 IPv6 路径失败的**核心断点**。
+
+### Router Lifetime = 0 → 无 IPv6 默认路由
+
+RA 报文头 **Router Lifetime**（秒）指示客户端是否将该 RA 源作为 **IPv6 默认路由器**：
+
+| 值 | 语义 | 本案例 |
+|----|------|--------|
+| > 0 | 添加默认路由 `::/0 via fe80::8c08:aaff:fe0c:eb64` | — |
+| **= 0** | **不要**把发送者当默认路由器 | Jammmy 实际值 |
+
+即 **没有可用 IPv6 默认路由**，链外流量（含 NAT64 目标）无法转发。
+
+### PIO Prefix Lifetime = 0 → 无 IPv6 地址前缀
+
+**Prefix Information Option (PIO, opt3)** 负责 SLAAC 全局地址：
+
+| PIO 字段 | Jammmy 值 | 含义 |
+|----------|-----------|------|
+| Prefix Length | 0 | 无效 |
+| Prefix | :: | 空 |
+| Valid / Preferred Lifetime | 0 | 前缀不可用 |
+
+客户端无法获得全局 IPv6 地址，仅有 **fe80::/64** link-local。
+
+### 矛盾：IPv6-only 信号 + 坏 RA
+
+```
+DHCP OFFER: yiaddr=0 + opt108 → 别用 IPv4，走 IPv6-only
+CN6 RS    → 请求路由与前缀
+iPhone RA : Router LT=0、PIO ::/0 → 无路由、无全局地址
+          : PREF64 64:ff9b::/96、RDNSS fe80::... → 有线索但无法工作
+CN6 结果  : LinkProperties 仅 fe80::/64，0 validated
+```
+
+NAT64 至少需要 **默认路由 + 可用 IPv6 源地址**；本案例两项均缺。
+
 ## 建议措施
 1. **热点端（优先）**：确认对方蜂窝网正常；重启热点；iPhone 开「最大兼容性」；换普通路由器对比
 2. **CN6 Framework（中优）**：IPv6-only OFFER 后 RA 无效 → fallback 重试 DHCP **不请求 opt108**
