@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-07-10",
+  "last_updated": "2026-07-11",
   "cases": [
     {
       "id": "CASE-001",
@@ -422,6 +422,18 @@
       "file_path": "cases/dhcp-failure/CASE-034_TOS163-42064_STA连Jammmy_IPv6only-OFFER_RA无效_双栈无出口_周期断连.md",
       "source": "TOS163-42064",
       "created_at": "2026-07-10",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-035",
+      "title": "Mesh频繁POOR_RCPI ping-pong漫游+wpa认证失败导致TikTok打不开",
+      "category": "disconnect",
+      "tags": ["POOR_RCPI", "乒乓漫游", "Mesh-PingPong", "同ESS多BSSID", "Associated-Not-Connected", "Driver-L2-Success-Wpa-Auth-Fail", "4-Way-Handshake-Timeout", "Auth超时", "SSID_BEST_RSSI", "RCPI劣化", "TikTok", "特定App打不开", "validated与可用性脱节", "CN6c", "MTK driver", "孟加拉", "粉丝反馈"],
+      "symptom": "TikTok打不开，同WiFi其他App能加载；问题窗口~25s wpa无CONNECTED，19:55:18 Ping失败",
+      "root_cause": "RINMUS WIFI 620 mesh覆盖弱，21次POOR_RCPI ping-pong；当次漫游:67驱动L2 SUCCESS但wpa Auth超时，回退:65 4-Way失败",
+      "file_path": "cases/disconnect/CASE-035_TOS163-39774_POOR_RCPI_mesh_pingpong漫游wpa认证失败TikTok打不开.md",
+      "source": "TOS163-39774",
+      "created_at": "2026-07-11",
       "match_count": 0
     }
   ],
