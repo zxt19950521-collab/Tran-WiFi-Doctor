@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-07-11",
+  "last_updated": "2026-07-17",
   "cases": [
     {
       "id": "CASE-001",
@@ -435,6 +435,32 @@
       "source": "TOS163-39774",
       "created_at": "2026-07-11",
       "match_count": 0
+    },
+    {
+      "id": "CASE-036",
+      "title": "CN6口袋待机Zoom下行唤醒阻塞WiFi休眠导致温升",
+      "category": "performance",
+      "tags": ["待机功耗", "口袋待机", "block26M", "WiFi阻塞休眠", "SETSUSPENDMODE", "nic_rxd_v2_check_wakeup_reason", "Zoom", "us.zoom.videomeetings", "170.114.52.5", "应用后台保活", "CN6", "MTK平台", "续航温升"],
+      "symptom": "口袋待机温升8.6℃/功耗433mA，26M休眠率0，wf:0,0",
+      "root_cause": "Zoom服务器170.114.52.5/.83下行包反复唤醒WiFi，间歇吞吐约40%非零，无法稳定休眠；应用保活问题非WiFi driver",
+      "file_path": "cases/performance/CASE-036_CN6OS16-2328_口袋待机Zoom下行唤醒阻塞WiFi休眠.md",
+      "source": "CN6OS16-2328",
+      "created_at": "2026-07-17",
+      "match_count": 0,
+      "power_case": "PWR-002"
+    },
+    {
+      "id": "PWR-002",
+      "title": "CN6口袋待机Zoom下行唤醒阻塞WiFi休眠",
+      "category": "power-consumption",
+      "tags": ["待机功耗", "口袋待机", "block26M", "WiFi阻塞休眠", "SETSUSPENDMODE", "nic_rxd_v2_check_wakeup_reason", "Zoom", "170.114.52.5", "应用后台保活", "CN6"],
+      "symptom": "口袋待机温升超竞品，26M_off=0，WiFi被下行包唤醒",
+      "root_cause": "Zoom IP下行反复唤醒WiFi导致无法稳定LPS/深度休眠，抬高电流与板温",
+      "file_path": "cases/power-consumption/PWR-002_CN6OS16-2328_口袋待机Zoom下行唤醒阻塞WiFi休眠.md",
+      "source": "CN6OS16-2328",
+      "created_at": "2026-07-17",
+      "match_count": 0,
+      "related_case": "CASE-036"
     }
   ],
   "categories": {

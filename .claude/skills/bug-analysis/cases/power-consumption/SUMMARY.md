@@ -19,9 +19,25 @@
 2. 查 SPM：26M_off_pct、suspend wake up by、LPM is blocked by
 3. 查 Connsys 功耗分布：conninfra_power_state 中 bt/wf/gps 占比
 4. 查 BT：btmtk BR_INQUIRY_SCAN / BLE_ADV / BLE_SCAN
-5. 查 WiFi（若相关）：SETSUSPENDMODE、wlan0 teardown、P2P listen
-6. 追溯上层发起方（GMS / 系统服务 / 三方 App）
+5. 查 WiFi（若相关）：SETSUSPENDMODE、wlan0 teardown、P2P listen、`nic_rxd_v2_check_wakeup_reason`
+6. 追溯上层发起方（GMS / 系统服务 / 三方 App / 远端服务器 IP）
 ```
+
+---
+
+## WiFi 下行唤醒日志要点
+
+```text
+nic_rxd_v2_check_wakeup_reason:(RX DEBUG) IP Packet from:170.114.52.5,
+```
+
+| 要点 | 说明 |
+|------|------|
+| 出现时机 | 灭屏/suspend 前后仍反复打印 |
+| 处理 | WHOIS 归属 IP → 对应 App/业务；对照停用该 App 测电流 |
+| 与 driver | 有下行业务保持 awake **通常为预期**，优先查应用保活 |
+
+配合：`SETSUSPENDMODE 0/1` 进出、`kalPerMonUpdate` Tput>0 占比。
 
 ---
 
@@ -83,6 +99,7 @@
 | ID | Jira | 标题 | 根因摘要 | 责任方向 | 状态 |
 |----|------|------|----------|----------|------|
 | PWR-001 | LJ9OS16-81 | LJ9 复杂待机电流超标 | GMS 发起 BT 频繁扫描/广播 → conn block → LPM 失败 | GMS / BT 业务 + Conninfra | 已分析 |
+| PWR-002 | CN6OS16-2328 | CN6 口袋待机温升 | Zoom 下行 170.114.52.x 反复唤醒 WiFi → 无法稳定休眠 | Zoom / 应用保活 | 已分析 |
 
 ---
 
@@ -94,4 +111,4 @@
 
 ---
 
-*最后更新：2026-06-29*
+*最后更新：2026-07-17*
