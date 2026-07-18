@@ -76,10 +76,22 @@
 - `com.android.settings` → 用户在设置页手动连接
 - 详见 `wifi-common/tags-knowledge.md`「框架连接日志解读」
 
-**main log — 网络验证/感叹号（硬规则）**：检索 `ConnectivityService: Update score for net`，看行末 score 标记：
-- 含 `+EVER_EVALUATED`（或 `+IS_VALIDATED`）→ 已验证可上网，状态栏无感叹号
-- 含 `-IS_VALIDATED`，或仅有 `+TRANSPORT_PRIMARY` 而无 EVER_EVALUATED → 不可上网，状态栏感叹号
-- 详见 `wifi-common/tags-knowledge.md`「网络验证状态日志解读」
+**main log — 网络验证/感叹号（硬规则）**：同时检索管家关键字
+`ConnectivityService: Update score for net` 与 `ConnectivityService: Update capabilities for net`：
+- capabilities `+VALIDATED` / score `+IS_VALIDATED` → 已验证可上网
+- capabilities `-VALIDATED+PARTIAL_CONNECTIVITY` → 半通（重点）
+- capabilities `+CAPTIVE_PORTAL`（无 VALIDATED）→ 门户结论，须再定传输侧
+- score `+IS_VALIDATED` → **此刻**可上网；`-IS_VALIDATED` → 当前失验（感叹号）
+- score `+EVER_VALIDATED` → **曾经**验证通过（良民证），可与当前 `-IS_VALIDATED` 并存
+- score `+TRANSPORT_PRIMARY` → 主传输通道/默认网候选，≠已验证
+- score `+YIELD_TO_BAD_WIFI` → 对坏 WiFi 让步，多见于蜂窝救场（须 `networkAddInterface` 定侧）
+- 仅有 `+EVER_EVALUATED` ≠可上网（且 ≠`EVER_VALIDATED`），须看 capabilities / `IS_VALIDATED`
+- 详见 `wifi-common/tags-knowledge.md`「网络验证状态日志解读」「认识 → 信任」
+
+**main log — netId 传输侧（硬规则）**：对每个 `Update score/capabilities for net <id>`，必须检索同时间窗 `netd: networkAddInterface(<id>, <ifName>)`：
+- `wlan0` → WiFi；`ccmni*` / `rmnet*` → 蜂窝；`p2p0` → P2P
+- 禁止仅凭 `CAPTIVE_PORTAL` / `YIELD_TO_BAD_WIFI` 判定为 WiFi 问题
+- 详见 `wifi-common/tags-knowledge.md`「netId 传输侧判定」
 
 ### 步骤 4: 识别失败模式
 分析失败模式：

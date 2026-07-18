@@ -94,22 +94,40 @@ WifiService: connect uid=... packageNameToUse=com.android.settings
 
 **分析要点**：SSID 切换或 `network lost` 后，查同时间窗 `WifiService: connect` 的 `packageNameToUse`，区分用户操作 vs 框架策略。详见 `tags-knowledge.md`「框架连接日志解读」。
 
-### 网络验证状态（ConnectivityService: Update score for net）
+### 网络验证状态（ConnectivityService: Update score / Update capabilities）
 
-**特征日志**：
+**特征日志（管家关键字）**：
 ```
-ConnectivityService: Update score for net 183 : -IS_VALIDATED
-ConnectivityService: Update score for net 184 : +EVER_EVALUATED
+ConnectivityService: Update capabilities for net 212 : -VALIDATED+PARTIAL_CONNECTIVITY
+ConnectivityService: Update score for net 212 : -IS_VALIDATED
+ConnectivityService: Update capabilities for net 213 : +VALIDATED
+ConnectivityService: Update score for net 213 : +EVER_VALIDATED+IS_VALIDATED
 ```
 
 **解读规则**：
 
-| 行末标记 | 含义 |
-|----------|------|
-| 含 `+EVER_EVALUATED`（或 `+IS_VALIDATED`） | WiFi **已验证可上网**，状态栏无感叹号 |
-| 含 `-IS_VALIDATED`，或仅有 `+TRANSPORT_PRIMARY` 而无 EVER_EVALUATED | **不可上网**，状态栏显示**感叹号** |
+| 标记 | 含义 |
+|------|------|
+| capabilities `+VALIDATED` / score `+IS_VALIDATED` | **此刻**可上网 |
+| score `+EVER_VALIDATED` | **曾经**验证通过（可与 `-IS_VALIDATED` 并存） |
+| capabilities `+PARTIAL_CONNECTIVITY` | **半通** |
+| capabilities `+CAPTIVE_PORTAL` | 门户结论（须 `networkAddInterface` 定侧） |
+| score `+TRANSPORT_PRIMARY` | **主传输通道/默认网候选**（≠已验证） |
+| score `+YIELD_TO_BAD_WIFI` | 对坏 WiFi 让步；多见于蜂窝救场 |
+| score `-IS_VALIDATED`，或仅 `+TRANSPORT_PRIMARY` | **感叹号** |
+| 仅 `+EVER_EVALUATED` | ≠可上网，且 ≠`EVER_VALIDATED` |
 
-每次切换 SSID 后常有数秒～数十秒验证窗口。详见 `tags-knowledge.md`「网络验证状态日志解读」。
+详见 `tags-knowledge.md`「网络验证状态日志解读」。
+
+### netId 传输侧（netd: networkAddInterface）
+
+**特征日志**：
+```
+netd: networkAddInterface(213, wlan0)
+netd: networkAddInterface(214, ccmni0)
+```
+
+**解读规则**：`wlan0`=WiFi，`ccmni*`/`rmnet*`=蜂窝，`p2p0`=P2P。分析 `Update score/capabilities for net <id>` 时必须对齐 ifName，详见 `tags-knowledge.md`「netId 传输侧判定」。
 
 ## TAG 使用技巧
 

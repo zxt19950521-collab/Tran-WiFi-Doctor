@@ -226,18 +226,47 @@ WiFi正常使用 → 设备过热 → 热节流 → 吞吐量低/延迟高
 
 分析 SSID 切换 / `network lost` 时，必须与 `WifiService: connect` 时间对齐，避免把框架自动切网误判为用户操作。
 
-## 网络验证状态速查（ConnectivityService）
+## 网络验证状态速查（ConnectivityService 管家关键字）
 
-| 行末 score 标记 | 含义 |
-|----------------|------|
-| `+EVER_EVALUATED` / `+IS_VALIDATED` | **已验证可上网**，状态栏正常 |
-| `-IS_VALIDATED` | **失去验证**，状态栏**感叹号** |
-| 仅 `+TRANSPORT_PRIMARY` 等，无 EVER_EVALUATED | 尚未验证完成，**感叹号** |
+| 关键字 | 作用 |
+|--------|------|
+| `Update score for net` | 选网打分 / 感叹号 |
+| `Update capabilities for net` | App 可见能力（VALIDATED / PARTIAL / CAPTIVE） |
+
+| 标记 | 含义 |
+|------|------|
+| score `+IS_VALIDATED` / capabilities `+VALIDATED` | **此刻**可上网（黄金标准） |
+| score `-IS_VALIDATED` / capabilities `-VALIDATED` | **当前**失去验证，感叹号 |
+| score `+EVER_VALIDATED` | **曾经**验证通过（良民证）；可与 `-IS_VALIDATED` 并存 |
+| score `+TRANSPORT_PRIMARY` | **主传输通道/默认网候选**；尚未 VALIDATED 时仍感叹号 |
+| score `+YIELD_TO_BAD_WIFI` | 对坏 WiFi 让步；多见于**蜂窝**救场 |
+| capabilities `+PARTIAL_CONNECTIVITY` | **半通** |
+| capabilities `+CAPTIVE_PORTAL`（无 VALIDATED） | 门户；须 `networkAddInterface` 定侧 |
+| 仅 `+EVER_EVALUATED` | 探测结束，**不等于**可上网（≠`EVER_VALIDATED`） |
 
 ```
-ConnectivityService: Update score for net 183 : -IS_VALIDATED
-ConnectivityService: Update score for net 191 : +EVER_VALIDATED+IS_VALIDATED
+# 短暂断流又恢复（同 net，约数秒～数十秒）
+ConnectivityService: Update capabilities for net 212 : -VALIDATED+PARTIAL_CONNECTIVITY
+ConnectivityService: Update score for net 212 : -IS_VALIDATED
+...（后台持续探测，常保留 EVER_VALIDATED）
+ConnectivityService: Update capabilities for net 212 : -PARTIAL_CONNECTIVITY+VALIDATED
+ConnectivityService: Update score for net 212 : +IS_VALIDATED
 ```
+
+## netId 传输侧速查（networkAddInterface）
+
+| ifName | 传输侧 |
+|--------|--------|
+| `wlan0` | WiFi |
+| `ccmni*` / `rmnet*` | 蜂窝 |
+| `p2p0` | P2P |
+
+```
+netd: networkAddInterface(213, wlan0)    → WiFi
+netd: networkAddInterface(214, ccmni0)  → 蜂窝
+```
+
+出现 `Update score for net <id>` 后，必须用 `networkAddInterface(<id>,` 定侧，勿把蜂窝 CAPTIVE_PORTAL 误判为 WiFi。
 
 ## 输出模板
 

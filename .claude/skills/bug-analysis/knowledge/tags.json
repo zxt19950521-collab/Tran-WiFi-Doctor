@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "last_updated": "2026-06-08",
+  "last_updated": "2026-07-18",
   "source": "wifi-common/tags-knowledge.md + bug-analysis 实战积累",
   "categories": {
     "p2p-connection": "P2P连接失败",
@@ -771,16 +771,112 @@
       "id": "TAG-095",
       "name": "网络已验证可上网",
       "category": "dns-network",
-      "description": "ConnectivityService标记EVER_EVALUATED/IS_VALIDATED，WiFi已验证可上网，状态栏无感叹号",
-      "patterns": ["ConnectivityService: Update score for net.*\\+EVER_EVALUATED", "ConnectivityService: Update score for net.*\\+IS_VALIDATED"],
+      "description": "ConnectivityService标记EVER_EVALUATED/IS_VALIDATED或capabilities +VALIDATED，已验证可上网，状态栏无感叹号",
+      "patterns": [
+        "ConnectivityService: Update score for net.*\\+EVER_EVALUATED",
+        "ConnectivityService: Update score for net.*\\+IS_VALIDATED",
+        "ConnectivityService: Update capabilities for net.*\\+VALIDATED"
+      ],
       "auto_extract": true
     },
     {
       "id": "TAG-096",
       "name": "网络未验证感叹号",
       "category": "dns-network",
-      "description": "ConnectivityService标记-IS_VALIDATED或尚无EVER_EVALUATED，状态栏显示感叹号",
-      "patterns": ["ConnectivityService: Update score for net.*-IS_VALIDATED"],
+      "description": "ConnectivityService标记-IS_VALIDATED或capabilities -VALIDATED，或尚无EVER_EVALUATED，状态栏显示感叹号",
+      "patterns": [
+        "ConnectivityService: Update score for net.*-IS_VALIDATED",
+        "ConnectivityService: Update capabilities for net.*-VALIDATED"
+      ],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-097",
+      "name": "networkAddInterface定传输侧",
+      "category": "dns-network",
+      "description": "netd将netId绑定到网卡接口；用ifName区分WiFi(wlan0)/蜂窝(ccmni*/rmnet*)/P2P(p2p0)，确认Update score所属传输侧",
+      "patterns": ["netd.*networkAddInterface", "networkAddInterface\\(\\d+,\\s*wlan0\\)", "networkAddInterface\\(\\d+,\\s*ccmni", "networkAddInterface\\(\\d+,\\s*rmnet", "networkAddInterface\\(\\d+,\\s*p2p0\\)"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-098",
+      "name": "Update score for net",
+      "category": "dns-network",
+      "description": "ConnectivityService更新网络选网打分；行末含IS_VALIDATED/EVER_EVALUATED/TRANSPORT_PRIMARY等，决定默认网与感叹号",
+      "patterns": ["ConnectivityService: Update score for net"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-099",
+      "name": "Update capabilities for net",
+      "category": "dns-network",
+      "description": "ConnectivityService更新网络能力位；行末含VALIDATED/PARTIAL_CONNECTIVITY/CAPTIVE_PORTAL等，决定App可见上网能力",
+      "patterns": ["ConnectivityService: Update capabilities for net"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-100",
+      "name": "部分连通PARTIAL_CONNECTIVITY",
+      "category": "dns-network",
+      "description": "capabilities出现+PARTIAL_CONNECTIVITY（常伴随-VALIDATED），表示半通：Ping等可能成功但HTTP(S)探测不稳，App易失败",
+      "patterns": [
+        "ConnectivityService: Update capabilities for net.*\\+PARTIAL_CONNECTIVITY",
+        "ConnectivityService: Update capabilities for net.*-VALIDATED\\+PARTIAL_CONNECTIVITY"
+      ],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-101",
+      "name": "capabilities强制门户CAPTIVE_PORTAL",
+      "category": "dns-network",
+      "description": "Update capabilities出现+CAPTIVE_PORTAL且无+VALIDATED；须用networkAddInterface定侧，勿默认当作WiFi门户",
+      "patterns": ["ConnectivityService: Update capabilities for net.*\\+CAPTIVE_PORTAL"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-102",
+      "name": "TRANSPORT_PRIMARY主传输通道",
+      "category": "dns-network",
+      "description": "Update score出现+TRANSPORT_PRIMARY：该net被选为当前主传输/默认网络候选；不等于已验证可上网，常早于+VALIDATED数秒至数十秒",
+      "patterns": ["ConnectivityService: Update score for net.*\\+TRANSPORT_PRIMARY"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-103",
+      "name": "YIELD_TO_BAD_WIFI对坏WiFi让步",
+      "category": "dns-network",
+      "description": "Update score出现+YIELD_TO_BAD_WIFI：通常打在蜂窝等非WiFi网上，表示系统判定当前WiFi质量差/无网，允许蜂窝临时顶上保障上网；须用networkAddInterface定侧",
+      "patterns": ["ConnectivityService: Update score for net.*YIELD_TO_BAD_WIFI"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-104",
+      "name": "IS_VALIDATED当前已验证",
+      "category": "dns-network",
+      "description": "Update score的+IS_VALIDATED/-IS_VALIDATED：此刻探测通过则可真正上网的黄金标准；-IS_VALIDATED表示当前失去验证（感叹号），不等于从未通过",
+      "patterns": [
+        "ConnectivityService: Update score for net.*\\+IS_VALIDATED",
+        "ConnectivityService: Update score for net.*-IS_VALIDATED"
+      ],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-105",
+      "name": "EVER_VALIDATED曾经验证过",
+      "category": "dns-network",
+      "description": "Update score的+EVER_VALIDATED：历史曾验证通过的“良民证”；当前-IS_VALIDATED时系统仍可能宽容等待恢复，勿与EVER_EVALUATED（探测流程跑完）混淆",
+      "patterns": ["ConnectivityService: Update score for net.*\\+EVER_VALIDATED"],
+      "auto_extract": true
+    },
+    {
+      "id": "TAG-106",
+      "name": "网络波动短暂失验恢复",
+      "category": "dns-network",
+      "description": "同一netId上短暂断流又自动恢复：先-IS_VALIDATED/+PARTIAL_CONNECTIVITY，数秒至数十秒后-PARTIAL_CONNECTIVITY+VALIDATED；因常有EVER_VALIDATED故不立刻踢网。用户侧表现为视频转圈/消息发不出后自行恢复",
+      "patterns": [
+        "ConnectivityService: Update capabilities for net.*-PARTIAL_CONNECTIVITY\\+VALIDATED",
+        "ConnectivityService: Update capabilities for net.*-VALIDATED\\+PARTIAL_CONNECTIVITY"
+      ],
       "auto_extract": true
     }
   ],
@@ -866,8 +962,31 @@
       "内存压力": ["low memory", "memory pressure"],
       "SystemUI发起连接": ["WifiService: connect.*packageNameToUse=com.android.systemui"],
       "用户设置发起连接": ["WifiService: connect.*packageNameToUse=com.android.settings"],
-      "网络已验证可上网": ["ConnectivityService: Update score for net.*\\+EVER_EVALUATED", "ConnectivityService: Update score for net.*\\+IS_VALIDATED"],
-      "网络未验证感叹号": ["ConnectivityService: Update score for net.*-IS_VALIDATED"]
+      "网络已验证可上网": [
+        "ConnectivityService: Update score for net.*\\+EVER_EVALUATED",
+        "ConnectivityService: Update score for net.*\\+IS_VALIDATED",
+        "ConnectivityService: Update capabilities for net.*\\+VALIDATED"
+      ],
+      "网络未验证感叹号": [
+        "ConnectivityService: Update score for net.*-IS_VALIDATED",
+        "ConnectivityService: Update capabilities for net.*-VALIDATED"
+      ],
+      "networkAddInterface定传输侧": ["netd.*networkAddInterface", "networkAddInterface\\(\\d+,"],
+      "Update score for net": ["ConnectivityService: Update score for net"],
+      "Update capabilities for net": ["ConnectivityService: Update capabilities for net"],
+      "部分连通PARTIAL_CONNECTIVITY": ["ConnectivityService: Update capabilities for net.*PARTIAL_CONNECTIVITY"],
+      "capabilities强制门户CAPTIVE_PORTAL": ["ConnectivityService: Update capabilities for net.*CAPTIVE_PORTAL"],
+      "TRANSPORT_PRIMARY主传输通道": ["ConnectivityService: Update score for net.*\\+TRANSPORT_PRIMARY"],
+      "YIELD_TO_BAD_WIFI对坏WiFi让步": ["ConnectivityService: Update score for net.*YIELD_TO_BAD_WIFI"],
+      "IS_VALIDATED当前已验证": [
+        "ConnectivityService: Update score for net.*\\+IS_VALIDATED",
+        "ConnectivityService: Update score for net.*-IS_VALIDATED"
+      ],
+      "EVER_VALIDATED曾经验证过": ["ConnectivityService: Update score for net.*\\+EVER_VALIDATED"],
+      "网络波动短暂失验恢复": [
+        "ConnectivityService: Update capabilities for net.*-PARTIAL_CONNECTIVITY\\+VALIDATED",
+        "ConnectivityService: Update capabilities for net.*-VALIDATED\\+PARTIAL_CONNECTIVITY"
+      ]
     },
     "断开原因代码": {
       "0": "未指定原因 → 建链后秒断",
@@ -924,6 +1043,18 @@
       "name": "应用层网络误报",
       "chain": ["WiFi连接+validated", "Ping/Probe正常", "PER 0~3%", "App展示网络不可用", "测速验证网络可用"],
       "case_ref": "CASE-012"
+    },
+    {
+      "name": "网络波动短暂失验恢复",
+      "chain": [
+        "探测失败",
+        "-IS_VALIDATED",
+        "+PARTIAL_CONNECTIVITY",
+        "保留EVER_VALIDATED继续探测",
+        "-PARTIAL_CONNECTIVITY+VALIDATED",
+        "+IS_VALIDATED"
+      ],
+      "case_ref": "X6885OS16-533"
     }
   ]
 }
