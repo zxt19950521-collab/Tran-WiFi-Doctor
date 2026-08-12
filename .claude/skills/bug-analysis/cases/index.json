@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-07-03",
+  "last_updated": "2026-08-12",
   "cases": [
     {
       "id": "CASE-001",
@@ -375,6 +375,18 @@
       "created_at": "2026-06-29",
       "match_count": 0,
       "related_case": "CASE-031"
+    },
+    {
+      "id": "CASE-032",
+      "title": "2.4G连接初期PER极高导致体验卡顿（叠加WiFi长时间关闭）",
+      "category": "performance",
+      "tags": ["PER高", "PER峰值突刺", "Tx fail率高", "ACK fail", "RTS fail", "物理速率偏低", "2.4G单频", "Channel2干扰/拥塞", "连接初期链路差", "WiFi长时间关闭", "ERR_INTERNET_DISCONNECTED", "粉丝体验类", "CN6", "MTK driver", "wlanLinkQualityMonitor"],
+      "symptom": "用WiFi时手机卡顿；刚开启WiFi后前30s PER均值28.5%、峰值90%，Tx fail率>10%",
+      "root_cause": "2.4G Ch2信道质量差导致连接初期PER极高、Tx/ACK fail飙升、速率被压低；叠加WiFi此前关闭约1小时加剧无网络感知；不可仅凭Ping/validated判正常",
+      "file_path": "cases/performance/CASE-032_TOS163-42395_2.4G高PER连接初期卡顿.md",
+      "source": "TOS163-42395",
+      "created_at": "2026-08-12",
+      "match_count": 0
     }
   ],
   "categories": {
