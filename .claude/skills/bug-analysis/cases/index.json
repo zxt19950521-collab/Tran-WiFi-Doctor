@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-07-17",
+  "last_updated": "2026-09-12",
   "cases": [
     {
       "id": "CASE-001",
@@ -461,6 +461,19 @@
       "created_at": "2026-07-17",
       "match_count": 0,
       "related_case": "CASE-036"
+    },
+    {
+      "id": "CASE-037",
+      "title": "SoftAP/多下游tethering接口抖动后dnsmasq忙等导致后台CPU95%",
+      "category": "performance",
+      "tags": ["HealthCpu", "dnsmasq", "dns_tether", "SoftAP", "Tethering", "poll忙等", "POLLERR", "USB-rndis", "接口抖动", "后台CPU异常", "X6878", "X6885", "QCOM", "MTK平台"],
+      "symptom": "HealthCpu上报dnsmasq ADJ=-1000 CPU约93%~95%，热点/USB共享期间后台单核打满",
+      "root_cause": "dnsmasq 2.51在下游接口抖动后未摘除POLLERR/HUP的DNS listen fd，poll忙等空转；非DNS风暴",
+      "file_path": "cases/performance/CASE-037_X6878O6AEE-35245_SoftAP接口抖动dnsmasq忙等高CPU.md",
+      "source": "X6878O6AEE-35245",
+      "related_issues": ["X6885O6AEE-40569"],
+      "created_at": "2026-09-12",
+      "match_count": 0
     }
   ],
   "categories": {
