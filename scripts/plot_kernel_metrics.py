@@ -23,11 +23,13 @@ from datetime import datetime
 def parse_kernel_log(filepath):
     """Parse converted kernel log for kalPerMonUpdate and halDumpMsduReportStats."""
     # Format: 06-01 04:17:46.541 ... kalPerMonUpdate:... <1839ms> Tput: 976(0.000mbps) [132:2:93:1]... LQ[506120:517543:15157]...
+    # Colon format: Tput: 976(0.000mbps) [132:2:93:1] ... LQ[506120:517543:15157]
+    # Comma format: Tput: 32000(0.031mbps) [2790,38,2688,31] ... LQ[0,1378,923,9464]
     tput_pattern = re.compile(
         r'(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+).*kalPerMonUpdate.*?'
         r'Tput:\s*(\d+)\(([0-9.]+)mbps\)\s*'
-        r'\[([0-9]+):([0-9]+):([0-9]+):([0-9]+)\].*?'
-        r'LQ\[(\d+):(\d+):(\d+)\]'
+        r'\[([0-9]+)[,:]([0-9]+)[,:]([0-9]+)[,:]([0-9]+)\].*?'
+        r'LQ\[(\d+)[,:](\d+)[,:](\d+)(?:[,:](\d+))?\]'
     )
     # Format: 06-01 ... halDumpMsduReportStats ... C:[10:20:50:80]=[2:0:0:0:0#0] ... Txfail:0
     tx_delay_pattern = re.compile(
@@ -49,7 +51,8 @@ def parse_kernel_log(filepath):
                 tx1, tx2, rx1, rx2 = int(m.group(4)), int(m.group(5)), int(m.group(6)), int(m.group(7))
                 lq_tx = int(m.group(8))
                 lq_rx = int(m.group(9))
-                lq_val = int(m.group(10))
+                # 3-field LQ[tx:rx:val] or 4-field LQ[a,b,c,d] (use last as value)
+                lq_val = int(m.group(11)) if m.group(11) else int(m.group(10))
                 try:
                     ts = datetime.strptime(f"2026-{ts_str}", "%Y-%m-%d %H:%M:%S.%f")
                 except:

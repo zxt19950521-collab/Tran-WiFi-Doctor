@@ -129,9 +129,18 @@
 | TAG | 描述 | 典型日志模式 | 关联问题 |
 |-----|------|-------------|----------|
 | SCC同信道 | STA和P2P同信道 | `SCC`, `same channel` | 干扰问题 |
+| MCC异信道并发 | STA与P2P不同信道软件时分 | `NAF:B=`, `kalMccBoostCheck`, `DBDC Mode 0` | P2P吞吐/建链 |
+| MCC同频异信道 | 同band不同channel的MCC | STA/P2P 同 `b=` 不同 `c=` + NAF双B交替 | 时隙/邻频 |
+| MCC异频并发 | 跨2.4/5G的MCC | STA `b=1` + P2P `b=2`（或反之）+ NAF | 时隙/切换 |
+| NAF时隙统计 | 已用NAF完成占空比/时隙/切信道统计 | `qmHandleEventBssAbsencePresence`, `NAF:B=,A=` | MCC量化 |
+| MCC Boost | 传输入口后按TputLv倾斜P2P时隙 | `kalMccBoostCheck.*State:0->1` | 互传加速非建链 |
+| 软件MCC(DBDC Mode0) | 非硬件DBDC的软件时分MCC | `cnmDbdc.*DBDC Mode 0` | 与DBS区分 |
 | AP密集 | 周围AP密集 | 多个AP信号 | 干扰问题 |
 | 2.4G频段 | 2.4GHz频段 | `freq=2412`, `2.4G` | 频段问题 |
 | 5G频段 | 5GHz频段 | `freq=5180`, `5G` | 频段问题 |
+
+> **MCC 时隙占比统计**：见 bug-analysis `knowledge/docs/mtk-mcc-naf-slot.md`。  
+> `NAF:B=,A=` 中 `A=0` 占用、`A=1` 让出；累计得 **STA%:P2P%**；Boost **不在** 建链期触发。
 
 ### 10. 系统事件类
 
@@ -416,7 +425,13 @@ netd: networkAddInterface(<netId>, <ifName>)
     "ConnectivityService: Update capabilities for net.*-PARTIAL_CONNECTIVITY\\+VALIDATED",
     "ConnectivityService: Update capabilities for net.*-VALIDATED\\+PARTIAL_CONNECTIVITY"
   ],
-  "networkAddInterface定传输侧": ["netd.*networkAddInterface", "networkAddInterface\\(\\d+,\\s*wlan0\\)", "networkAddInterface\\(\\d+,\\s*ccmni", "networkAddInterface\\(\\d+,\\s*rmnet", "networkAddInterface\\(\\d+,\\s*p2p0\\)"]
+  "networkAddInterface定传输侧": ["netd.*networkAddInterface", "networkAddInterface\\(\\d+,\\s*wlan0\\)", "networkAddInterface\\(\\d+,\\s*ccmni", "networkAddInterface\\(\\d+,\\s*rmnet", "networkAddInterface\\(\\d+,\\s*p2p0\\)"],
+  "MCC异信道并发": ["NAF:B=", "qmHandleEventBssAbsencePresence", "kalMccBoostCheck", "DBDC Mode 0"],
+  "MCC同频异信道": ["NAF:B=0", "NAF:B=1", "rlmFillSyncCmdParam"],
+  "MCC异频并发": ["NAF:B=", "kalMccBoostCheck", "rlmFillSyncCmdParam"],
+  "NAF时隙统计": ["qmHandleEventBssAbsencePresence", "NAF:B=,A="],
+  "MCC Boost": ["kalMccBoostCheck.*State:0->1", "kalMccBoostCheck.*TputLv"],
+  "软件MCC(DBDC Mode0)": ["DBDC Mode 0", "cnmDbdc.*Mode 0"]
 }
 ```
 
@@ -537,6 +552,16 @@ netd: networkAddInterface(<netId>, <ifName>)
     - 鉴别: 同时段无 network lost / torn down wlan0；kernel PER 截图时刻 ≤10%
     - 典型案例: CASE-012（TOS163-35222，主因）
 
+17. **MCC 时隙导致 P2P 建链偶现失败 / 互传慢**
+    ```
+    STA已连 → P2P建组（异信道） → 软件MCC（NAF约50:50） → 建链窗口不足偶现失败
+    或：建链成功 → 传输入口 → kalMccBoostCheck → NAF偏置P2P（约25:75） → 互传加速
+    ```
+    - 关联TAG: MCC异信道并发, NAF时隙统计, MCC Boost, MCC同频异信道/MCC异频并发
+    - 统计方法: bug-analysis `knowledge/docs/mtk-mcc-naf-slot.md`（NAF:B=,A=）
+    - 注意: Boost **不在** 接入/DHCP 阶段触发，不能保证建链成功率
+    - 参考数据: AIOT-260827-2
+
 ## 快速匹配规则
 
 ### 按日志关键词匹配
@@ -592,3 +617,6 @@ netd: networkAddInterface(<netId>, <ifName>)
 | `networkAddInterface` | networkAddInterface定传输侧 | 确认 netId=WiFi/蜂窝/P2P |
 | `SBE.*abnormal implementation` | 应用层网络误报 | 业务失败 |
 | `wlanLinkQualityMonitor.*PER\([0-9]\)` | 截图时刻PER正常 | 鉴别应用层误报 |
+| `NAF:B=` / `qmHandleEventBssAbsencePresence` | NAF时隙统计 / MCC异信道并发 | MCC时隙占比 |
+| `kalMccBoostCheck` | MCC Boost | 互传加速（非建链） |
+| `DBDC Mode 0` | 软件MCC(DBDC Mode0) | 软件时分MCC |

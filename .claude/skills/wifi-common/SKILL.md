@@ -52,6 +52,8 @@ description: >-
    - 按问题类型选择分析策略
    - 提取关键事件和时间线
    - 识别失败点
+   - 若出现 `NAF:B=` / `qmHandleEventBssAbsencePresence` / `kalMccBoostCheck`：
+     读取 `.claude/skills/bug-analysis/knowledge/docs/mtk-mcc-naf-slot.md`，按 NAF 统计 STA%:P2P% 时隙占比
 
 2. **TAG 关联分析**
    - 根据 `tags-knowledge.md` 中的关联分析规则

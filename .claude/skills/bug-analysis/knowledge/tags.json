@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "last_updated": "2026-07-18",
+  "last_updated": "2026-08-30",
   "source": "wifi-common/tags-knowledge.md + bug-analysis 实战积累",
   "categories": {
     "p2p-connection": "P2P连接失败",
@@ -878,6 +878,60 @@
         "ConnectivityService: Update capabilities for net.*-VALIDATED\\+PARTIAL_CONNECTIVITY"
       ],
       "auto_extract": true
+    },
+    {
+      "id": "TAG-107",
+      "name": "MCC异信道并发",
+      "category": "performance",
+      "description": "STA与P2P/SoftAP不同信道软件时分MCC；用NAF统计占空比与时隙，见mtk-mcc-naf-slot.md",
+      "patterns": ["NAF:B=", "qmHandleEventBssAbsencePresence", "kalMccBoostCheck", "DBDC Mode 0"],
+      "auto_extract": true,
+      "knowledge_doc": "docs/mtk-mcc-naf-slot.md"
+    },
+    {
+      "id": "TAG-108",
+      "name": "MCC同频异信道",
+      "category": "environment",
+      "description": "同band不同channel的软件MCC（如2.4G ch1+ch6）；切信道死时间通常短于异频",
+      "patterns": ["NAF:B=0", "NAF:B=1", "rlmFillSyncCmdParam"],
+      "auto_extract": true,
+      "knowledge_doc": "docs/mtk-mcc-naf-slot.md"
+    },
+    {
+      "id": "TAG-109",
+      "name": "MCC异频并发",
+      "category": "environment",
+      "description": "跨2.4/5G的软件MCC；切信道重调谐成本更高，Boost后常偏置P2P约25:75",
+      "patterns": ["NAF:B=", "kalMccBoostCheck", "rlmFillSyncCmdParam"],
+      "auto_extract": true,
+      "knowledge_doc": "docs/mtk-mcc-naf-slot.md"
+    },
+    {
+      "id": "TAG-110",
+      "name": "NAF时隙统计",
+      "category": "performance",
+      "description": "已用qmHandleEventBssAbsencePresence的NAF:B=,A=完成STA%:P2P%占空比、时隙中位、切信道死时间统计",
+      "patterns": ["qmHandleEventBssAbsencePresence", "NAF:B=,A="],
+      "auto_extract": true,
+      "knowledge_doc": "docs/mtk-mcc-naf-slot.md"
+    },
+    {
+      "id": "TAG-111",
+      "name": "MCC Boost",
+      "category": "performance",
+      "description": "kalMccBoostCheck在传输入口后按TputLv倾斜P2P时隙；不在P2P建链/DHCP阶段触发，不能保证建链成功率",
+      "patterns": ["kalMccBoostCheck.*State:0->1", "kalMccBoostCheck.*TputLv"],
+      "auto_extract": true,
+      "knowledge_doc": "docs/mtk-mcc-naf-slot.md"
+    },
+    {
+      "id": "TAG-112",
+      "name": "软件MCC(DBDC Mode0)",
+      "category": "platform",
+      "description": "cnmDbdc报告DBDC Mode 0：非硬件DBDC的软件时分MCC，与真DBS/DBDC区分",
+      "patterns": ["DBDC Mode 0", "cnmDbdc.*Mode 0"],
+      "auto_extract": true,
+      "knowledge_doc": "docs/mtk-mcc-naf-slot.md"
     }
   ],
   "extraction_rules": {
@@ -986,7 +1040,13 @@
       "网络波动短暂失验恢复": [
         "ConnectivityService: Update capabilities for net.*-PARTIAL_CONNECTIVITY\\+VALIDATED",
         "ConnectivityService: Update capabilities for net.*-VALIDATED\\+PARTIAL_CONNECTIVITY"
-      ]
+      ],
+      "MCC异信道并发": ["NAF:B=", "qmHandleEventBssAbsencePresence", "kalMccBoostCheck", "DBDC Mode 0"],
+      "MCC同频异信道": ["NAF:B=0", "NAF:B=1", "rlmFillSyncCmdParam"],
+      "MCC异频并发": ["NAF:B=", "kalMccBoostCheck", "rlmFillSyncCmdParam"],
+      "NAF时隙统计": ["qmHandleEventBssAbsencePresence", "NAF:B=,A="],
+      "MCC Boost": ["kalMccBoostCheck.*State:0->1", "kalMccBoostCheck.*TputLv"],
+      "软件MCC(DBDC Mode0)": ["DBDC Mode 0", "cnmDbdc.*Mode 0"]
     },
     "断开原因代码": {
       "0": "未指定原因 → 建链后秒断",
@@ -1055,6 +1115,19 @@
         "+IS_VALIDATED"
       ],
       "case_ref": "X6885OS16-533"
+    },
+    {
+      "name": "MCC时隙导致P2P建链偶现失败或互传慢",
+      "chain": [
+        "STA已连",
+        "P2P异信道建组",
+        "软件MCC(NAF约50:50)",
+        "建链窗口不足偶现失败",
+        "或传输入口后kalMccBoostCheck",
+        "NAF偏置P2P约25:75",
+        "互传加速"
+      ],
+      "case_ref": "AIOT-260827-2"
     }
   ]
 }

@@ -105,6 +105,7 @@ description: >-
 | `wlanLinkQualityMonitor` | `knowledge/docs/mtk-link-quality-monitor.md` | 解析 Tx/Rx/PER/Congestion 各字段，按公式计算指标，匹配场景模板 A~F |
 | `scnFsmDumpScanDoneInfo` / `IdleTime` / `MdrdyCnt` / `BAndPCnt` / `CU Value` | `knowledge/docs/mtk-scan-done-info.md` | 解析扫描结果，评估信道质量，用于 ACS/P2P 选信道/拥塞排查 |
 | `roamingFsm` / `apsSearchBssDesc` / `roamingFsmRunEventFail` | `knowledge/docs/mtk-roaming.md`（待建） | 漫游触发原因与流程分析 |
+| `NAF:B=` / `qmHandleEventBssAbsencePresence` / `kalMccBoostCheck` / `MCC`+`P2P` | `knowledge/docs/mtk-mcc-naf-slot.md` | MCC 时隙占空比/时隙长度/切信道死时间统计；区分同频异信道与异频；Boost 仅传输入口后 |
 
 #### WiFi 通用分析（任何 WiFi 问题均需加载）
 
@@ -120,6 +121,7 @@ description: >-
 分析 kernel log 时：
   遇到 wlanLinkQualityMonitor → Read knowledge/docs/mtk-link-quality-monitor.md
   遇到 scnFsmDumpScanDoneInfo → Read knowledge/docs/mtk-scan-done-info.md
+  遇到 NAF:B= / qmHandleEventBssAbsencePresence / kalMccBoostCheck → Read knowledge/docs/mtk-mcc-naf-slot.md
 
 分析任何 WiFi 问题时：
   提取 TAG 前 → Read knowledge/docs/wifi-tags-knowledge.md

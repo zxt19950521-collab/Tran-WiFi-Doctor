@@ -320,7 +320,9 @@ Congestion(idle slot:201375448, diff:10295, AwakeDur:4070346)
 
 - **SCC（Single Channel Concurrency）**：P2P 和 STA 使用同一信道 → 共享空口时间，互相抢占
 - **MCC（Multi Channel Concurrency）**：P2P 和 STA 使用不同信道 → 需要分时切换，引入延迟
-- 判断方法：对比 P2P interface 和 STA interface 的 channel/freq
+- 判断方法：对比 P2P interface 和 STA interface 的 channel/freq（`rlmFillSyncCmdParam`）
+
+**MCC 时隙占比量化（必做）**：出现 `NAF:B=` / `qmHandleEventBssAbsencePresence` 时，按 [`mtk-mcc-naf-slot.md`](mtk-mcc-naf-slot.md) 统计 STA:P2P 占空比、时隙中位、切信道死时间；区分同频异信道与异频。勿仅凭无 quota 字段断言“无时隙信息”。
 
 ### 排查建议
 

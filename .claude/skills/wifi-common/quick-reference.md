@@ -20,6 +20,7 @@
 | 断开连接 | `CTRL-EVENT-DISCONNECTED` | 断开连接, 固件崩溃, AP发起解认证 | - |
 | DNS/网络问题 | `DNS query timeout`, `Captive portal` | DNS超时, 强制门户, 无互联网 | - |
 | 性能问题 | `thermal throttling`, `Tput:` | 热节流, 吞吐量低, RSSI低 | - |
+| MCC时隙/互传 | `NAF:B=`, `kalMccBoostCheck`, `DBDC Mode 0` | MCC异信道并发, NAF时隙统计, MCC Boost | AIOT-260827-2 |
 
 ## TAG 速查表
 
@@ -95,6 +96,15 @@
 - **热节流** - `thermal throttling`
 - **RSSI低** - `mtk_cfg80211_get_station ... rssi=` 低值
 - **协商速率低** - `wlanLinkQualityMonitor ... Tx(rate:` 低值
+
+### MCC / 并发类
+- **MCC异信道并发** - `NAF:B=`, `qmHandleEventBssAbsencePresence`, `DBDC Mode 0`
+- **MCC同频异信道** - STA/P2P 同 band 不同 channel + NAF
+- **MCC异频并发** - STA/P2P 跨 2.4/5G + NAF
+- **NAF时隙统计** - `NAF:B=,A=`（A=0占用/A=1让出，算 STA%:P2P%）
+- **MCC Boost** - `kalMccBoostCheck`（传输入口后倾斜，非建链期）
+- **软件MCC(DBDC Mode0)** - `cnmDbdc.*DBDC Mode 0`
+- 详细方法: bug-analysis `knowledge/docs/mtk-mcc-naf-slot.md`
 
 ### 系统事件类
 - **屏幕状态变化** - `screen on`, `screen off`
@@ -214,6 +224,13 @@ WiFi连接 → 信号弱 → 漫游尝试 → 漫游失败 → 断开连接
 WiFi正常使用 → 设备过热 → 热节流 → 吞吐量低/延迟高
 ```
 **检查点**：thermal throttling, Tput低
+
+### 模式 14：MCC 时隙（P2P/互传）
+```
+STA已连 → P2P异信道 → 软件MCC(NAF≈50:50) → 建链偶现失败
+或：传输入口 → kalMccBoostCheck → NAF偏置P2P(≈25:75) → 互传加速
+```
+**检查点**：`NAF:B=,A=` 占空比；同/异频；Boost 仅传输入口后。详见 `mtk-mcc-naf-slot.md`
 
 ## 框架连接日志速查（WifiService: connect）
 
