@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-09-12",
+  "last_updated": "2026-10-01",
   "cases": [
     {
       "id": "CASE-001",
@@ -473,6 +473,18 @@
       "source": "X6878O6AEE-35245",
       "related_issues": ["X6885O6AEE-40569"],
       "created_at": "2026-09-12",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-038",
+      "title": "德克士Dicos-WiFi门户白屏/页面不全（8080主CSS丢段+ gstatic.cn探测IP黑洞）",
+      "category": "auth-failure",
+      "tags": ["CaptivePortal", "Dicos-WiFi", "CMPS", "白屏", "页面不全", "bootstrap.min.css", "8080", "gstatic.cn", "SYN黑洞", "off-channel扫描", "GMS-NLP", "NetworkMonitor", "PROBE_HTTPS", "Athena", "lost_segment", "X6878", "QCOM平台"],
+      "symptom": "CaptivePortal登录页白屏或样式不全；或卡在gstatic无法进入121.41登录页",
+      "root_cause": "登录页CSS跨机在172.16.0.1:8080，弱链路+全频段扫描导致主CSS TCP丢段；RedirectUrl锁gstatic.cn后.139:80二次SYN黑洞导致白屏B；443探测/Athena为加重因素",
+      "file_path": "cases/auth-failure/CASE-038_Portal_德克士CaptivePortal白屏页面不全.md",
+      "source": "Portal",
+      "created_at": "2026-10-01",
       "match_count": 0
     }
   ],
