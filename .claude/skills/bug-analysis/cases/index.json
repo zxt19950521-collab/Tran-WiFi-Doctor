@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-10-01",
+  "last_updated": "2026-10-03",
   "cases": [
     {
       "id": "CASE-001",
@@ -485,6 +485,18 @@
       "file_path": "cases/auth-failure/CASE-038_Portal_德克士CaptivePortal白屏页面不全.md",
       "source": "Portal",
       "created_at": "2026-10-01",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-039",
+      "title": "Trusted Credentials禁用导致系统CA不可信、WiFi Limited connection",
+      "category": "auth-failure",
+      "tags": ["网络验证失败", "部分连通PARTIAL_CONNECTIVITY", "无互联网", "证书信任", "Trust anchor", "certificate_unknown", "access_denied", "SSLHandshakeException", "Trusted Credentials", "Ping成功Probe失败", "SoftAP", "X6886", "巴基斯坦", "MTK平台"],
+      "symptom": "升级后连WiFi显示Limited connection；L2/DHCP/Ping网关正常，HTTPS探测失败",
+      "root_cause": "系统Trusted Credentials中CA被disable，公网证书仍certificate_unknown/Trust anchor missing；enable后恢复。本次log不能证明用户当场手动关闭",
+      "file_path": "cases/auth-failure/CASE-039_X6886OS16-290_TrustedCredentials禁用导致Limited connection.md",
+      "source": "X6886OS16-290",
+      "created_at": "2026-10-03",
       "match_count": 0
     }
   ],
