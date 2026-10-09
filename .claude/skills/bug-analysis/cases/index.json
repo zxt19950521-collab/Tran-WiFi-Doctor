@@ -477,13 +477,13 @@
     },
     {
       "id": "CASE-038",
-      "title": "德克士Dicos-WiFi门户白屏/页面不全（8080主CSS丢段+ gstatic.cn探测IP黑洞）",
+      "title": "德克士Dicos-WiFi门户白屏/加载慢/页面不全（网关成段不回应SYN）",
       "category": "auth-failure",
-      "tags": ["CaptivePortal", "Dicos-WiFi", "CMPS", "白屏", "页面不全", "bootstrap.min.css", "8080", "gstatic.cn", "SYN黑洞", "off-channel扫描", "GMS-NLP", "NetworkMonitor", "PROBE_HTTPS", "Athena", "lost_segment", "X6878", "QCOM平台"],
-      "symptom": "CaptivePortal登录页白屏或样式不全；或卡在gstatic无法进入121.41登录页",
-      "root_cause": "登录页CSS跨机在172.16.0.1:8080，弱链路+全频段扫描导致主CSS TCP丢段；RedirectUrl锁gstatic.cn后.139:80二次SYN黑洞导致白屏B；443探测/Athena为加重因素",
+      "tags": ["CaptivePortal", "Dicos-WiFi", "CMPS", "wifidog", "白屏", "加载慢", "页面不全", "bootstrap.min.css", "8080", "121.41.53.206", "gstatic.cn", "SYN无应答", "网关劫持", "成段丢包", "CaptivePortalLogin", "NetworkMonitor", "X6878", "QCOM平台"],
+      "symptom": "CaptivePortal登录页白屏（无URL）、长时间加载或无样式页面不全；偶现，概率随日期波动",
+      "root_cause": "门户网关172.16.0.1成段不回应其自身应答服务的SYN（劫持的gstatic:80、本机8080静态资源），按目的IP成段；转发到121.41的连接从不丢。WebView首请求撞上=白屏，8080撞上=加载慢+无CSS。手机报文/空口正常，弱信号、缓存、限速、HTTPS诱发均已排除或不支持",
       "file_path": "cases/auth-failure/CASE-038_Portal_德克士CaptivePortal白屏页面不全.md",
-      "source": "Portal",
+      "source": "TOS170-28746",
       "created_at": "2026-10-01",
       "match_count": 0
     },
