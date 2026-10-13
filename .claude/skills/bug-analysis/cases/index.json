@@ -498,6 +498,18 @@
       "source": "X6886OS16-290",
       "created_at": "2026-10-03",
       "match_count": 0
+    },
+    {
+      "id": "CASE-040",
+      "title": "产线RF工位残留FTM模式导致*#802#测试WiFi2.4G/5G扫描失败",
+      "category": "scan-failure",
+      "tags": ["扫描失败", "WificondScannerImpl失败", "驱动FTM模式残留", "Command not allowed in FTM mode", "con_mode=5", "ftmdaemon", "产线工序", "*#802#", "工模MMI", "tranfacmode", "重启恢复", "2.4G频段", "5G频段", "X6766", "WCN6450", "高通平台"],
+      "symptom": "产线*#802#测试WiFi2.4G和WiFi5G第一次均NG（10s超时），重启后复测PASS",
+      "root_cause": "RF测试工位经adb执行insmod qca_cld3_wcn6450.ko con_mode=5进入FTM模式后未恢复con_mode=0也未重启，驱动残留FTM模式拒绝所有scan/vendor命令（Command not allowed in FTM mode），重启后恢复正常模式",
+      "file_path": "cases/scan-failure/CASE-040_X6766OS17-879_产线RF工位残留FTM模式导致802测试WiFi扫描失败.md",
+      "source": "X6766OS17-879",
+      "created_at": "2026-10-13",
+      "match_count": 0
     }
   ],
   "categories": {
