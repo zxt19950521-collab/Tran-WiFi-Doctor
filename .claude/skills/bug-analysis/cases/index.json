@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-10-03",
+  "last_updated": "2026-10-14",
   "cases": [
     {
       "id": "CASE-001",
@@ -509,6 +509,18 @@
       "file_path": "cases/scan-failure/CASE-040_X6766OS17-879_产线RF工位残留FTM模式导致802测试WiFi扫描失败.md",
       "source": "X6766OS17-879",
       "created_at": "2026-10-13",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-041",
+      "title": "公司网上行PMTU黑洞导致海外服务Folax加载失败（WiFi强信号且系统已验证）",
+      "category": "performance",
+      "tags": ["网络侧限制", "上行PMTU黑洞", "MSS未钳制", "大包丢小包通", "DF重传无ACK", "无ICMP需要分片", "海外服务器访问失败", "Google不可达", "SYN无响应", "网络已验证可上网", "验证服务器在国内", "unexpected end of stream", "SocketTimeoutException", "Folax", "aibotplatform", "强信号", "5G频段", "用户手动开关WiFi", "公司网", "X6878", "wcn6450", "高通平台", "粉丝反馈"],
+      "symptom": "公司WiFi强信号、状态栏无感叹号，Folax一直Loading content，用户感知为WiFi信号差/连不上，关开WiFi无效",
+      "root_cause": "公司网到海外上行路径MTU<1500且无ICMP需要分片、无MSS钳制；对端MSS1460时1500字节DF上行包全丢(41/41)，TLS握手成功后上传卡死约14s被FIN/RST；对端MSS1360的海外服务器正常；Google 443 SYN无响应；系统验证走国内服务器故VALIDATED",
+      "file_path": "cases/performance/CASE-041_X6878OS17-2019_公司网上行PMTU黑洞导致海外服务Folax加载失败.md",
+      "source": "X6878OS17-2019",
+      "created_at": "2026-10-14",
       "match_count": 0
     }
   ],
