@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-10-14",
+  "last_updated": "2026-10-16",
   "cases": [
     {
       "id": "CASE-001",
@@ -521,6 +521,18 @@
       "file_path": "cases/performance/CASE-041_X6878OS17-2019_公司网上行PMTU黑洞导致海外服务Folax加载失败.md",
       "source": "X6878OS17-2019",
       "created_at": "2026-10-14",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-042",
+      "title": "共享WiFi间歇性拥塞导致已连接但网页/应用加载失败（强信号且系统已验证）",
+      "category": "performance",
+      "tags": ["已连接无法上网", "validated与可用性脱节", "网络侧拥塞", "共享热点", "延迟高", "Ping超时", "DNS超时", "回包秒级排队", "请求已ACK", "信道拥塞", "PER突刺", "强信号正常速率", "WiFi未断开", "TranWifiSmartAssistant", "framework_pass取消revalidation", "MTK driver", "肯尼亚", "X6895", "粉丝反馈"],
+      "symptom": "共享WiFi强信号、系统VALIDATED无提示，网页/应用间歇性加载失败；Ping/DNS回包延迟1~12秒，部分DNS无应答",
+      "root_cause": "网络侧(AP/网关/回程)间歇性拥塞：请求约10ms即被AP ACK但回包秒级排队；信道空闲slot降约5倍、PER/ACK fail升约3倍为伴随因素；框架HTTP探测6.2s仍返回200致revalidation被framework_pass取消",
+      "file_path": "cases/performance/CASE-042_X6895SOS17-229_共享WiFi间歇性拥塞导致已连接网页应用加载失败.md",
+      "source": "X6895SOS17-229",
+      "created_at": "2026-10-16",
       "match_count": 0
     }
   ],
