@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-10-16",
+  "last_updated": "2026-10-19",
   "cases": [
     {
       "id": "CASE-001",
@@ -534,6 +534,54 @@
       "source": "X6895SOS17-229",
       "created_at": "2026-10-16",
       "match_count": 0
+    },
+    {
+      "id": "CASE-043",
+      "title": "TDLS未建链peer断连时DISABLE_LINK触发TdlsexLinkOper空指针KE整机重启",
+      "category": "disconnect",
+      "tags": ["Kernel Exception", "KernelReboot", "驱动空指针", "TdlsexLinkOper", "TDLS", "TDLS Discovery", "TDLS_DISABLE_LINK", "Beacon Timeout", "cnmStaFreeAllStaByNetwork", "断开连接", "信号弱", "2.4G频段", "MT6899", "gen4m", "MTK driver", "X6877"],
+      "symptom": "FANS上报0xffffff04 KE整机重启，Call trace TdlsexLinkOper+0xe0，NULL pointer dereference at 0xd38",
+      "root_cause": "peer仅TDLS Discovery未建链；STA弱信号Beacon Timeout断连并释放BSS0全部STA_REC；wpa_supplicant断连清理下发TDLS_DISABLE_LINK(oper=4)，驱动按MAC查STA_REC得NULL未判空直接读+0xd38导致KE",
+      "file_path": "cases/disconnect/CASE-043_X6877AEE-14203_TDLS未建链peer断连DISABLE_LINK触发TdlsexLinkOper空指针KE.md",
+      "source": "X6877AEE-14203",
+      "created_at": "2026-10-16",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-044",
+      "title": "快速关开WiFi时wlan0未创建即下发resetTxPowerScenario，高通libwifi-hal空句柄解引用导致wifi-service崩溃",
+      "category": "stability",
+      "tags": ["DaemonCrash", "WiFi HAL崩溃", "SIGSEGV", "空指针", "wifi_reset_tx_power_scenario", "resetTxPowerScenario", "SAR/TxPower", "SarManager", "快速开关WiFi", "iface未创建", "Unknown iface name", "高通平台", "X6878"],
+      "symptom": "FANS上报DaemonCrash 0x007a0054，android.hardware.wifi-service SIGSEGV fault addr 0x0，栈顶wifi_reset_tx_power_scenario.cfi+28 <- WifiChip::resetTxPowerScenarioInternal，用户1s内关开WiFi",
+      "root_cause": "HAL started后wlan0未创建时框架下发resetTxPowerScenario；AOSP HAL回退默认名wlan0，getIfaceHandle返回nullptr；高通wifi_reset_tx_power_scenario未判空直接解引用崩溃",
+      "file_path": "cases/stability/CASE-044_TOS170AEE-24991_快速关开WiFi时wlan0未创建下发resetTxPowerScenario致wifi-service空指针崩溃.md",
+      "source": "TOS170AEE-24991",
+      "created_at": "2026-10-16",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-045",
+      "title": "Miracast投屏腾讯极光盒子6播放视频花屏：Sink每10s周期性省电突发叠加GO 20MHz 1x1与单slice/IDR 4s码流",
+      "category": "performance",
+      "tags": ["Miracast", "WFD", "投屏", "花屏", "腾讯极光盒子", "P2P-GO", "5G频段", "MTK平台", "MtkWifiDisplaySource", "Sink周期性省电", "GC离信道", "MAC时延高", "Txfail", "RTP丢包", "RTCP", "GO 20MHz 1x1", "带宽回落", "同信道竞争", "单slice", "IDR间隔4s", "无IDR请求", "非断连", "非MCC", "信号良好", "X6765"],
+      "symptom": "X6765投屏腾讯极光盒子6播放本地视频必现花屏(偏绿/马赛克/块状条纹)，数秒后自恢复；P2P/RTSP不断开，信号良好(RCPI中位-52.75dBm)",
+      "root_cause": "盒子每10.0s约1.6s PM省电/离信道突发(突发内约69%不在线)；GO仅20MHz 1x1(ChGrant 40MHz但rlmBssInitForAP SCO=0)且ch36同信道竞争→突发期MAC时延>50ms、Txfail(35/35在突发内)、RTCP丢包11个(6/6在突发内)；码流1080p60 17.6Mbps单slice、IDR 4s且Sink不请求IDR→丢包即整帧花屏至下一IDR",
+      "file_path": "cases/performance/CASE-045_X6765OS17-440_Miracast投屏腾讯盒子Sink周期省电叠加GO20MHz单slice致花屏.md",
+      "source": "X6765OS17-440",
+      "created_at": "2026-10-16",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-046",
+      "title": "飞行模式+关WiFi期间“收到WhatsApp消息”为用户误判（关飞行模式连WiFi后同步离线消息，显示发送方时间）",
+      "category": "disconnect",
+      "tags": ["飞行模式", "TrAirplaneModeTile", "setWifiEnabled", "SystemUI快捷开关", "无默认网络", "Network is unreachable", "UnknownHostException", "networkAddInterface定传输侧", "WhatsApp", "badge_num", "离线消息同步", "发送时间戳误解", "非WiFi问题", "用户误判", "自动重连慢", "RSSI低", "2.4G频段", "粉丝反馈", "LK7", "埃及", "MTK平台"],
+      "symptom": "用户称关WiFi并开飞行模式数小时后，发现飞行期间收到了WhatsApp消息，“发生过两次”",
+      "root_cause": "飞行模式2h44m期间无默认网络、WiFi驱动关闭、WhatsApp重连全部Network is unreachable，角标98→98未变；用户08:26:04开WiFi、08:26:05关飞行模式，08:26:27连上WE_1C12CC后08:26:32才收到离线消息；WhatsApp显示发送方时间致误判。附带：开WiFi后约22s才自动连上（RSSI≈-80dBm入网门限边缘，待确认）",
+      "file_path": "cases/disconnect/CASE-046_TOS163-47124_飞行模式期间收到WhatsApp消息为用户误判_联网后同步显示发送时间.md",
+      "source": "TOS163-47124",
+      "created_at": "2026-10-19",
+      "match_count": 0
     }
   ],
   "categories": {
@@ -543,7 +591,8 @@
     "scan-failure": "扫描失败",
     "disconnect": "断开连接",
     "performance": "性能问题",
-    "power-consumption": "功耗专题"
+    "power-consumption": "功耗专题",
+    "stability": "稳定性/HAL崩溃"
   },
   "power_consumption_summary": "cases/power-consumption/SUMMARY.md"
 }
