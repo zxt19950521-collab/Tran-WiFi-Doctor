@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-10-19",
+  "last_updated": "2026-10-22",
   "cases": [
     {
       "id": "CASE-001",
@@ -582,6 +582,54 @@
       "source": "TOS163-47124",
       "created_at": "2026-10-19",
       "match_count": 0
+    },
+    {
+      "id": "CASE-047",
+      "title": "HFP通话时BT/WiFi共存策略强制WiFi高吞吐态，拦截BLE扫描致多端互联搜不到PC无法配对",
+      "category": "bt-coex",
+      "tags": ["BT/WiFi共存", "isCoexState", "TranCoexMonitor", "BLE扫描被拒", "HFP/SCO", "多端互联", "AIOT", "P2P连接成功", "5G频段", "MTK平台", "Windows", "非WiFi问题", "X6765"],
+      "symptom": "X6765后台蓝牙通话时多端互联搜不到Windows PC、无法配对，SCO结束后扫描恢复；WiFi STA/P2P均正常",
+      "root_cause": "TranCoexMonitor在SCO建立时以ignoreWifiMsg=true/persist=true强制wifi_state=1(wifi_ftp_On=true)，ScanManager.isCoexState()为true，挂起并拒绝com.transsion.iotservice的BLE扫描；WiFi实测约0.02Mbps、kernel lv:0并非高吞吐，第二次SCO前无任何wifi_high_tput上报仍被置1，HFP即禁扫；违反设计恢复条件4.1(WiFi吞吐<100KB/s即恢复，实测每秒≤20KB/s)，SCO期间ignoreWifiMsg=true忽略WiFi吞吐变化",
+      "file_path": "cases/bt-coex/CASE-047_TOS170-36313_HFP通话时共存策略强制WiFi高吞吐态拦截BLE扫描致多端互联搜不到PC.md",
+      "source": "TOS170-36313",
+      "created_at": "2026-10-19",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-048",
+      "title": "TDLS建链后TX入队qmDetermineStaRecIndex对空STA_REC解引用导致Kernel KE",
+      "category": "stability",
+      "tags": ["Kernel Exception", "KernelReboot", "驱动空指针", "qmDetermineStaRecIndex", "qmEnqueueTxPackets", "TDLS", "TDLS_ENABLE_LINK", "STA_REC", "IS_DLS_STA", "NULL+0x34", "FANS", "MT6899", "gen4m", "MTK driver", "X6891", "X6877"],
+      "symptom": "FANS上报0xffffff04 KE整机重启，CurProcess qmDetermineStaRecIndex，NULL pointer dereference at 0x34",
+      "root_cause": "qmDetermineStaRecIndex在TX入队时cnmGetTdlsPeerByAddress返回NULL，未判空即IS_DLS_STA读STA_REC+0x34；TDLS ENABLE_LINK/add_key之后立刻发包触发。Gerrit 1623153在que_mgt.c加prTempStaRec判空，预计直接挡住",
+      "file_path": "cases/stability/CASE-048_X6891AEE-10112_TDLS建链后TX入队qmDetermineStaRecIndex空指针KE.md",
+      "source": "X6891AEE-10112",
+      "created_at": "2026-10-22",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-049",
+      "title": "TDLS Teardown组帧TdlsDataFrameSend_TearDown对空指针解引用导致Kernel KE",
+      "category": "stability",
+      "tags": ["Kernel Exception", "KernelReboot", "驱动空指针", "TdlsDataFrameSend_TearDown", "TdlsexLinkMgt", "TDLS", "TDLS Teardown", "STA_REC", "NULL+0x38", "ONLINE_SCAN", "FANS", "MT6899", "gen4m", "MTK driver", "X6891", "X6877"],
+      "symptom": "FANS上报0xffffff04 KE整机重启，CurProcess TdlsDataFrameSend_TearDown，NULL pointer dereference at 0x38",
+      "root_cause": "TdlsexLinkMgt处理teardown(ActionCode=3)时cnmGetTdlsPeerByAddress返回NULL仍调用TdlsDataFrameSend_TearDown读NULL+0x38。Gerrit 1623153已判空返回TDLS_STATUS_FAIL",
+      "file_path": "cases/stability/CASE-049_X6877AEE-14224_TDLS_Teardown组帧TdlsDataFrameSend_TearDown空指针KE.md",
+      "source": "X6877AEE-14224",
+      "created_at": "2026-10-22",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-050",
+      "title": "TDLS DISABLE_LINK时TdlsexLinkOper对空STA_REC解引用导致Kernel KE",
+      "category": "stability",
+      "tags": ["Kernel Exception", "KernelReboot", "驱动空指针", "TdlsexLinkOper", "TDLS", "TDLS_DISABLE_LINK", "STA_REC", "NULL+0xd38", "FANS", "MT6899", "gen4m", "MTK driver", "X6891", "X6877"],
+      "symptom": "FANS上报0xffffff04 KE整机重启，CurProcess TdlsexLinkOper，NULL pointer dereference at 0xd38",
+      "root_cause": "TdlsexLinkOper处理oper=4时按MAC查STA_REC得NULL未判空即读+0xd38。与CASE-043同一崩溃点，本聚类为16.3.0.160SP01粉丝机TDLS生命周期disable。Gerrit 1623153将DISABLE_LINK包进if(prStaRec)",
+      "file_path": "cases/stability/CASE-050_X6891AEE-10942_TDLS_DISABLE_LINK_TdlsexLinkOper空指针KE.md",
+      "source": "X6891AEE-10942",
+      "created_at": "2026-10-22",
+      "match_count": 0
     }
   ],
   "categories": {
@@ -592,7 +640,8 @@
     "disconnect": "断开连接",
     "performance": "性能问题",
     "power-consumption": "功耗专题",
-    "stability": "稳定性/HAL崩溃"
+    "stability": "稳定性/HAL崩溃",
+    "bt-coex": "BT/WiFi共存"
   },
   "power_consumption_summary": "cases/power-consumption/SUMMARY.md"
 }
