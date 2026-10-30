@@ -642,6 +642,18 @@
       "source": "TOS170-42568",
       "created_at": "2026-10-30",
       "match_count": 0
+    },
+    {
+      "id": "CASE-086",
+      "title": "Miracast投屏腾讯极光盒子切换卡顿——volcano 1080p30对高刷UI半抽样+VDS时延（非WiFi）",
+      "category": "performance",
+      "tags": ["Miracast", "WFD", "投屏", "延迟高", "切换卡顿", "腾讯极光盒子", "P2P连接成功", "P2P-GC", "5G频段", "Qualcomm", "volcano", "wcn6450", "WFDMMSRCSTATS", "1080p30", "Display FPS", "Encode Time", "Muxing Time", "Buffer Stuffing", "VirtualDisplay", "非断连", "非WiFi", "X6766", "X6878"],
+      "symptom": "本地Miracast已连接，切换界面/滑动/横竖屏时电视跟手差；X6878同盒子复现且Encode/Mux尖峰更重",
+      "root_cause": "Source协商1080p30而UI/VDS约60fps，切界面时编码器跟不上。X6766卡在Encode 62ms（Mux未参与）；X6878 Encode 974ms且Mux 1039ms一起堵。非WiFi、非SF合成、非断连",
+      "file_path": "cases/performance/CASE-086_X6766OS17-369_Miracast投屏腾讯盒子1080p30对高刷UI半抽样致切换卡顿.md",
+      "source": "X6766OS17-369",
+      "created_at": "2026-10-30",
+      "match_count": 0
     }
   ],
   "categories": {
