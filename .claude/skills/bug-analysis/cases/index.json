@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-10-22",
+  "last_updated": "2026-10-30",
   "cases": [
     {
       "id": "CASE-001",
@@ -629,6 +629,18 @@
       "file_path": "cases/stability/CASE-050_X6891AEE-10942_TDLS_DISABLE_LINK_TdlsexLinkOper空指针KE.md",
       "source": "X6891AEE-10942",
       "created_at": "2026-10-22",
+      "match_count": 0
+    },
+    {
+      "id": "CASE-077",
+      "title": "TP-LINK WPA2/WPA3 SAE 路径 IGTK KeyID 非法导致连接失败",
+      "category": "auth-failure",
+      "tags": ["认证失败", "Invalid IGTK KeyID", "Failed to configure IGTK", "WPA3/SAE", "SAE", "MFPC", "802.11w", "PMF", "reason=1", "ASSOC-REJECT", "4次握手", "路由器兼容性", "TP-LINK", "XDR3010", "CO7", "X6765", "X6878", "竞品对照", "MTK平台", "wpa_supplicant", "挂测"],
+      "symptom": "挂测连 TP-LINK_XDR3010-Y 的 WPA2/WPA3 多种 PHY 失败，WPA/WPA2 全过；竞品同 wpa3 命令大多成功",
+      "root_cause": "SAE 四次握手 M3 的 IGTK KeyID 为 0xXX04（低字节合法=4，高字节非0），CO7/X6765 wpa_supplicant_install_igtk 校验失败后本机 reason=1 拆链；竞品容忍后能连通",
+      "file_path": "cases/auth-failure/CASE-077_TOS170-42568_WPA3_SAE路径IGTK_KeyID非法导致连接失败.md",
+      "source": "TOS170-42568",
+      "created_at": "2026-10-30",
       "match_count": 0
     }
   ],
